@@ -19,4 +19,6 @@ The following libraries must be installed via the Arduino Library Manager in the
 * Universal Timer (v1.0.0 was used at time of writing)
 * RP2040 ISR Servo (v1.1.2 was used at time of writing)
 
-## Configuration
+## Bluetooth LE
+For simplicity, the device is set up to advertise the Nordic BLE UART Service (and to use this service for communications with the device). By default it is named "DexHand" as well, so you should be able to see the device with any BLE Scanner after you've successfully built and uploaded the Arduino firmware.
+
