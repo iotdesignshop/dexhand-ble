@@ -161,3 +161,4 @@ cython_debug/
 Arduino/DexHand-RP2040-BLE/.vscode/**
 Python/*env/**
 
+Python/.vscode/launch.json

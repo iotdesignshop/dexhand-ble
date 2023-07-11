@@ -85,7 +85,7 @@ BLECharacteristic rxCharacteristic("6E400002-B5A3-F393-E0A9-E50E24DCCA9E", BLEWr
 
 // Heartbeat timer
 uint32_t heartbeat = 0;
-UniversalTimer heartbeatTimer(1000, true);  // 1 second interval
+UniversalTimer heartbeatTimer(5000, true);  // 5 second message interval
 
 
 
@@ -382,6 +382,8 @@ int bufPos = 0;
 void loop() {
 
   // ---- Serial Input Loop -----
+  // If there is no active BLE connection to the peripheral, then we will
+  // process serial commands for debugging/tuning/testing etc.
 
   // Is there serial data available for input?
   if (Serial.available()) {
@@ -393,18 +395,16 @@ void loop() {
     processCommand(cmd);
   }
 
-  // ---- Animation ------
-  //setOnePose();
-  //delay(1000);
-  //setDefaultPose();
-  //delay(1000);
-
-  // ----- Servo Loop -----
+  
+  // ----- BLE Loop -----
+  // If there is an active BLE connection to the peripheral, then we will
+  // ignore serial processing and run in a tight loop where we receive
+  // packets with the hand angles and convert those into servo positions
   
   BLEDevice central = BLE.central();  // wait for a BLE central
 
   if (central) {  // if a central is connected to the peripheral:
-    Serial.print("Connected to central: ");
+    Serial.print("Connected to central - entering BLE streaming mode:");
     Serial.println(central.address());  // print the central's MAC address
     
     
@@ -415,8 +415,14 @@ void loop() {
         heartbeat++;
         String data = "HB:" + String(heartbeat);
         txCharacteristic.writeValue(data.c_str());
-        Serial.println(data);
       }
+
+      // See if there's any data for us
+      if (rxCharacteristic.written()) {
+        Serial.print("Received: ");
+        Serial.println(reinterpret_cast<const char*>(rxCharacteristic.value()));
+      }
+      
     }
 
     Serial.print("Disconnected from central: ");
@@ -426,5 +432,15 @@ void loop() {
 
 void rxHandler(BLEDevice central, BLECharacteristic characteristic) {
   String receivedData = reinterpret_cast<const char*>(characteristic.value());  // get the data
+
+  // Extract all data up to newline
+  int newlinePos = receivedData.indexOf('\n');
+  if (newlinePos != -1)
+  {
+    receivedData = receivedData.substring(0, newlinePos);
+    processCommand(receivedData);
+  }
+
   Serial.println(receivedData);  // print the data
+  
 }
