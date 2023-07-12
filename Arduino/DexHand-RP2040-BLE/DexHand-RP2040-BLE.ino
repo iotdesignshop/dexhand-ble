@@ -87,6 +87,8 @@ BLECharacteristic rxCharacteristic("6E400002-B5A3-F393-E0A9-E50E24DCCA9E", BLEWr
 uint32_t heartbeat = 0;
 UniversalTimer heartbeatTimer(5000, true);  // 5 second message interval
 
+// Connection timeout timer
+UniversalTimer connectionTimeout(10000, true); // 10 second timeout
 
 
 void setDefaultPose() {
@@ -252,6 +254,7 @@ void setup() {
   }
 
   heartbeatTimer.start();  // Start heartbeat timer
+  connectionTimeout.start(); // Start timeout
 
   BLE.setLocalName("DexHand");  // Set name for connection
   BLE.setAdvertisedService(uartService); // Add the service UUID
@@ -310,8 +313,11 @@ void processCommand(String cmd)
   if (position < 0) position = 0;
   if (position > 180) position = 180;
 
-  Serial.println(cmdType);
-  Serial.println(index);
+  Serial.print("CMD:");
+  Serial.print(cmdType);
+  Serial.print(":");
+  Serial.print(index);
+  Serial.print(":");
   Serial.println(position);
 
   // Set the servo position
@@ -372,6 +378,10 @@ void processCommand(String cmd)
   {
     count();
   }
+  if (cmdType == "hb")
+  {
+    connectionTimeout.resetTimerValue();
+  }
 
 }
 
@@ -407,7 +417,9 @@ void loop() {
     Serial.print("Connected to central - entering BLE streaming mode:");
     Serial.println(central.address());  // print the central's MAC address
     
-    
+    // Start a fresh connection timeout timer
+    connectionTimeout.resetTimerValue();
+
     while (central.connected()) {  // while the central is still connected to peripheral:
        
       // Check if it's time to send a heartbeat
@@ -417,11 +429,19 @@ void loop() {
         txCharacteristic.writeValue(data.c_str());
       }
 
-      // See if there's any data for us
-      if (rxCharacteristic.written()) {
-        Serial.print("Received: ");
-        Serial.println(reinterpret_cast<const char*>(rxCharacteristic.value()));
+      // Make sure we've received a heartbeat from the central recently
+      if (connectionTimeout.check())
+      {
+        Serial.println("Connection timeout - disconnecting");
+        central.disconnect();
+        break;
       }
+
+      // See if there's any data for us
+      //if (rxCharacteristic.written()) {
+      //  Serial.print("BLELoop: ");
+      //  Serial.println(reinterpret_cast<const char*>(rxCharacteristic.value()));
+      //}
       
     }
 
@@ -439,8 +459,11 @@ void rxHandler(BLEDevice central, BLECharacteristic characteristic) {
   {
     receivedData = receivedData.substring(0, newlinePos);
     processCommand(receivedData);
+
+    Serial.print("rxHandler:");
+    Serial.println(receivedData);  // print the data
   }
 
-  Serial.println(receivedData);  // print the data
+  
   
 }

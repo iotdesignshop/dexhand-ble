@@ -6,6 +6,7 @@
 import asyncio
 import sys
 import cv2
+import time
 
 from bleak import BleakScanner
 
@@ -66,6 +67,10 @@ def draw_landmarks_on_image(rgb_image, detection_result):
 
   return annotated_image
 
+def millis() -> int:
+    """Get the current time in milliseconds."""
+    return int(round(time.time() * 1000))
+
 # Main hand tracking function
 async def hand_tracking():
     BaseOptions = mp.tasks.BaseOptions
@@ -82,17 +87,21 @@ async def hand_tracking():
 
         cap = cv2.VideoCapture(0)
 
-        ts = 0
+        # Get elapsed millis
+        ts = millis()
+        
         try: 
             while cap.isOpened():
                 ret, frame = cap.read()
                 if not ret:
                     break
 
+                # Mirror the image because we're facing the webcam
+                frame = cv2.flip(frame, 1)
+
                 mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame)
 
-                detection_result = landmarker.detect_for_video(mp_image,ts)
-                ts += 20
+                detection_result = landmarker.detect_for_video(mp_image,millis()-ts)
                 annotated_image = draw_landmarks_on_image(frame, detection_result)
                 cv2.imshow('DexHand BLE', annotated_image)
 
@@ -122,16 +131,12 @@ async def ble_communication():
     remote device. Any data received from the device is printed to stdout.
     """
 
-    def match_nus_uuid(device: BLEDevice, adv: AdvertisementData):
-        # This assumes that the device includes the UART service UUID in the
-        # advertising data. This test may need to be adjusted depending on the
-        # actual advertising data supplied by the device.
-        if UART_SERVICE_UUID.lower() in adv.service_uuids:
+    def dexhand_devices(device: BLEDevice, adv: AdvertisementData):
+        if (adv.local_name is not None) and ("DexHand" in adv.local_name):
             return True
-
         return False
 
-    device = await BleakScanner.find_device_by_filter(match_nus_uuid)
+    device = await BleakScanner.find_device_by_filter(dexhand_devices)
 
     if device is None:
         print("No DexHand device was found to establish a connection.")
@@ -162,6 +167,18 @@ async def ble_communication():
         loop = asyncio.get_running_loop()
         nus = client.services.get_service(UART_SERVICE_UUID)
         rx_char = nus.get_characteristic(UART_RX_CHAR_UUID)
+
+        # Schedule a timer to send a heartbeat message to the hand every 5 seconds
+        async def send_heartbeat():
+            hb = 0
+            
+            while True:
+                await asyncio.sleep(5)
+                hb_msg = "HB:"+str(hb)+"\n"
+                hb += 1
+                await client.write_gatt_char(rx_char, hb_msg.encode(), True)
+
+        asyncio.create_task(send_heartbeat())
 
         while True:
             # This waits until you type a line and press ENTER.
