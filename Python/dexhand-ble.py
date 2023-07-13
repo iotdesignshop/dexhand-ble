@@ -64,6 +64,12 @@ def draw_landmarks_on_image(rgb_image, detection_result):
     cv2.putText(annotated_image, f"{handedness[0].category_name}",
                 (text_x, text_y), cv2.FONT_HERSHEY_DUPLEX,
                 FONT_SIZE, HANDEDNESS_TEXT_COLOR, FONT_THICKNESS, cv2.LINE_AA)
+    
+    # Draw marker numbers on the image
+    for i in range(21):
+        cv2.putText(annotated_image, f"{i}",
+                (int(hand_landmarks[i].x * width), int(hand_landmarks[i].y * height)), cv2.FONT_HERSHEY_DUPLEX,
+                FONT_SIZE/2, (0,0,0), FONT_THICKNESS, cv2.LINE_AA)
 
   return annotated_image
 
@@ -71,6 +77,87 @@ def millis() -> int:
     """Get the current time in milliseconds."""
     return int(round(time.time() * 1000))
 
+def angle_between(p1,midpt,p2,plane=np.array([1,1,1])):
+    """Computes the angle between two 3d points and a midpoint"""
+    ba = (p1 - midpt)*plane
+    bc = (p2 - midpt)*plane
+
+    cosine_angle = np.dot(ba, bc) / (np.linalg.norm(ba) * np.linalg.norm(bc))
+    angle = np.arccos(cosine_angle)
+
+    return np.degrees(angle)
+
+def analyze_hand_landmarks(hand_landmarks):
+    """Analyze the hand landmarks and return the joint angles."""
+    
+    # We have the hand tracker configured to return only one hand, so we can make some assumptions
+    # and just grab the first hand_landmarks object, which contains the normalized coordinates
+    # of the detected hand.
+    hand_landmarks = hand_landmarks.hand_landmarks[0]
+
+    # Convert the hand landmark data into a numpy array of joint positions
+    joint_xyz = np.zeros((21,3))
+    for i in range(21):
+        joint_xyz[i] = np.array([hand_landmarks[i].x, hand_landmarks[i].y, hand_landmarks[i].z])
+    
+
+    joint_angles = np.zeros(16)
+
+    plane_y = np.array([1,0,1])
+
+    # First finger, fore or index
+    # Angles calculated correspond to knuckle flex, knuckle yaw and long tendon length for all fingers,
+    joint_angles[0] = 180-angle_between(joint_xyz[0], joint_xyz[5], joint_xyz[6])
+    joint_angles[1] = 90-angle_between(joint_xyz[9], joint_xyz[5], joint_xyz[6])
+    joint_angles[2] = 180-angle_between(joint_xyz[5], joint_xyz[6], joint_xyz[7])
+    #print(int(joint_angles[0]), int(joint_angles[1]), int(joint_angles[2]))
+
+    # Second finger, middle
+    joint_angles[3] = 180-angle_between(joint_xyz[0], joint_xyz[9], joint_xyz[10])
+    joint_angles[4] = 90-angle_between(joint_xyz[13], joint_xyz[9], joint_xyz[10])
+    joint_angles[5] = 180-angle_between(joint_xyz[9], joint_xyz[10], joint_xyz[11])
+    #print(joint_angles[3], joint_angles[4], joint_angles[5])
+
+    # Third finger, ring
+    joint_angles[6] = 180-angle_between(joint_xyz[0], joint_xyz[13], joint_xyz[14])
+    joint_angles[7] = angle_between(joint_xyz[9], joint_xyz[13], joint_xyz[14])-90
+    joint_angles[8] = 180-angle_between(joint_xyz[13], joint_xyz[14], joint_xyz[15])
+    #print(joint_angles[6], joint_angles[7], joint_angles[8])
+
+    # Fourth finger, pinky
+    joint_angles[9] = 180-angle_between(joint_xyz[0], joint_xyz[17], joint_xyz[18])
+    joint_angles[10] = angle_between(joint_xyz[13], joint_xyz[17], joint_xyz[18])-90
+    joint_angles[11] = 180-angle_between(joint_xyz[17], joint_xyz[18], joint_xyz[19])
+    #print(int(joint_angles[9]), int(joint_angles[10]), int(joint_angles[11]))
+
+    # Thumb, bit of a guess for basal rotation might be better automatic
+    joint_angles[12] = angle_between(joint_xyz[1], joint_xyz[2], joint_xyz[3])
+    joint_angles[13] = angle_between(joint_xyz[2], joint_xyz[1], joint_xyz[5])
+    joint_angles[14] = angle_between(joint_xyz[2], joint_xyz[3], joint_xyz[4])
+    joint_angles[15] = angle_between(joint_xyz[9], joint_xyz[5], joint_xyz[2])
+    #print(joint_angles[12], joint_angles[13], joint_angles[14], joint_angles[15])
+
+    return joint_angles
+
+# Angle debug display
+def draw_angles_on_image(image, joint_angles):
+    """Draw the joint angles on the image."""
+    height, width, _ = image.shape
+
+    # Draw the finger angles
+    for i in range(12):
+        cv2.putText(image, f"{i}: {int(joint_angles[i])}",
+                (int(width*0.05+int(i/3)*width*0.1), int(height*0.05 + (i%3)*height*0.05)), cv2.FONT_HERSHEY_DUPLEX,
+                FONT_SIZE/2, (0,0,0), FONT_THICKNESS, cv2.LINE_AA)
+        
+    # Draw the thumb angles
+    for i in range(12,16):
+        cv2.putText(image, f"{i}: {int(joint_angles[i])}",
+                (int(width*0.05), int(height*0.25 + (i-12)*height*0.05)), cv2.FONT_HERSHEY_DUPLEX,
+                FONT_SIZE/2, (0,0,0), FONT_THICKNESS, cv2.LINE_AA)
+
+    return image
+    
 # Main hand tracking function
 async def hand_tracking():
     BaseOptions = mp.tasks.BaseOptions
@@ -101,10 +188,24 @@ async def hand_tracking():
 
                 mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame)
 
+                # Run hand detection
                 detection_result = landmarker.detect_for_video(mp_image,millis()-ts)
+
+                # Draw the hand annotations on the image.
                 annotated_image = draw_landmarks_on_image(frame, detection_result)
+
+                # Analyze the hand landmarks
+                if detection_result.hand_landmarks:
+                    joint_angles = analyze_hand_landmarks(detection_result)
+                    if (joint_angles is not None):
+                        # Transmit joint angles to device
+
+                        annotated_image = draw_angles_on_image(annotated_image, joint_angles)
+                        pass
+
                 cv2.imshow('DexHand BLE', annotated_image)
 
+                
                 # Yield
                 await asyncio.sleep(0.01)
 
@@ -145,8 +246,8 @@ async def ble_communication():
     def handle_disconnect(_: BleakClient):
         print("Device was disconnected, goodbye.")
         # cancelling all tasks effectively ends the program
-        for task in asyncio.all_tasks():
-            task.cancel()
+        #for task in asyncio.all_tasks():
+        #    task.cancel()
 
     def handle_rx(_: BleakGATTCharacteristic, data: bytearray):
         # Convert received byte array to string
@@ -155,7 +256,7 @@ async def ble_communication():
         # Responses are pretty basic - this can be extended later if more
         # data comes back from the hand
         if (data.startswith("HB:")):
-            print("Heartbeat received: ", data[3:])
+            print("Heartbeat received from hand: ", data[3:])
         else:
             print("Unknown message received:", data)
 
