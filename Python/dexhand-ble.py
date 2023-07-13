@@ -101,9 +101,8 @@ def analyze_hand_landmarks(hand_landmarks):
         joint_xyz[i] = np.array([hand_landmarks[i].x, hand_landmarks[i].y, hand_landmarks[i].z])
     
 
-    joint_angles = np.zeros(16)
-
-    plane_y = np.array([1,0,1])
+    # Create storage for the angles
+    joint_angles = np.zeros(15)
 
     # First finger, fore or index
     # Angles calculated correspond to knuckle flex, knuckle yaw and long tendon length for all fingers,
@@ -131,10 +130,10 @@ def analyze_hand_landmarks(hand_landmarks):
     #print(int(joint_angles[9]), int(joint_angles[10]), int(joint_angles[11]))
 
     # Thumb, bit of a guess for basal rotation might be better automatic
-    joint_angles[12] = angle_between(joint_xyz[1], joint_xyz[2], joint_xyz[3])
-    joint_angles[13] = angle_between(joint_xyz[2], joint_xyz[1], joint_xyz[5])
-    joint_angles[14] = angle_between(joint_xyz[2], joint_xyz[3], joint_xyz[4])
-    joint_angles[15] = angle_between(joint_xyz[9], joint_xyz[5], joint_xyz[2])
+    joint_angles[12] = 180-angle_between(joint_xyz[1], joint_xyz[2], joint_xyz[3])
+    joint_angles[13] = 60-angle_between(joint_xyz[2], joint_xyz[1], joint_xyz[5])
+    joint_angles[14] = 180-angle_between(joint_xyz[2], joint_xyz[3], joint_xyz[4])
+    #joint_angles[15] = angle_between(joint_xyz[9], joint_xyz[5], joint_xyz[2])
     #print(joint_angles[12], joint_angles[13], joint_angles[14], joint_angles[15])
 
     return joint_angles
@@ -145,17 +144,23 @@ def draw_angles_on_image(image, joint_angles):
     height, width, _ = image.shape
 
     # Draw the finger angles
-    for i in range(12):
+    for i in range(15):
         cv2.putText(image, f"{i}: {int(joint_angles[i])}",
-                (int(width*0.05+int(i/3)*width*0.1), int(height*0.05 + (i%3)*height*0.05)), cv2.FONT_HERSHEY_DUPLEX,
+                (int(width*0.05+int(i/3)*width*0.1), int(height*0.1 + (i%3)*height*0.05)), cv2.FONT_HERSHEY_DUPLEX,
                 FONT_SIZE/2, (0,0,0), FONT_THICKNESS, cv2.LINE_AA)
         
-    # Draw the thumb angles
-    for i in range(12,16):
-        cv2.putText(image, f"{i}: {int(joint_angles[i])}",
-                (int(width*0.05), int(height*0.25 + (i-12)*height*0.05)), cv2.FONT_HERSHEY_DUPLEX,
+    # Draw titles for the columns
+    cv2.putText(image, "idx", (int(width*0.05), int(height*0.05)), cv2.FONT_HERSHEY_DUPLEX,
                 FONT_SIZE/2, (0,0,0), FONT_THICKNESS, cv2.LINE_AA)
-
+    cv2.putText(image, "mid", (int(width*0.15), int(height*0.05)), cv2.FONT_HERSHEY_DUPLEX,
+                FONT_SIZE/2, (0,0,0), FONT_THICKNESS, cv2.LINE_AA)
+    cv2.putText(image, "rng", (int(width*0.25), int(height*0.05)), cv2.FONT_HERSHEY_DUPLEX,
+                FONT_SIZE/2, (0,0,0), FONT_THICKNESS, cv2.LINE_AA)
+    cv2.putText(image, "pnk", (int(width*0.35), int(height*0.05)), cv2.FONT_HERSHEY_DUPLEX,
+                FONT_SIZE/2, (0,0,0), FONT_THICKNESS, cv2.LINE_AA)
+    cv2.putText(image, "thb", (int(width*0.45), int(height*0.05)), cv2.FONT_HERSHEY_DUPLEX,
+                FONT_SIZE/2, (0,0,0), FONT_THICKNESS, cv2.LINE_AA)
+        
     return image
     
 # Main hand tracking function
