@@ -48,6 +48,15 @@ void ManagedServo::setServoPosition(uint8_t position) {
     }
 }
 
+uint8_t ManagedServo::getServoPosition() const
+{
+    int position = RP2040_ISR_Servos.getPosition(mISRServoIndex);
+    if (mInvertAngles) {
+        position = 180 - position;
+    }
+    return static_cast<uint8_t>(position);
+}
+
 void ManagedServo::moveToMaxPosition() {
     setServoPosition(mMaxPosition);
 }

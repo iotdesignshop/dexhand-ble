@@ -34,12 +34,12 @@ class ManagedServo {
     public:
         // Constructor
         ManagedServo(uint8_t servoPin, uint8_t minPosition, uint8_t maxPosition, uint8_t defaultPosition, bool invertAngles);
-        ~ManagedServo();
+        virtual ~ManagedServo();
 
         // Accessors
-        inline uint8_t getServoPin() { return mServoPin; }
-        inline uint8_t getMinPosition() { return mMinPosition; }
-        inline uint8_t getMaxPosition() { return mMaxPosition; }
+        inline uint8_t getServoPin() const { return mServoPin; }
+        inline uint8_t getMinPosition() const { return mMinPosition; }
+        inline uint8_t getMaxPosition() const { return mMaxPosition; }
         inline void setMinPosition(uint8_t minPosition) { if(minPosition > 0 && minPosition < 180) mMinPosition = minPosition; }
         inline void setMaxPosition(uint8_t maxPosition) { if(maxPosition > 0 && maxPosition < 180) mMaxPosition = maxPosition; }
 
@@ -47,6 +47,7 @@ class ManagedServo {
 
         void setupServo();
         void setServoPosition(uint8_t position);
+        uint8_t getServoPosition() const;
         void moveToMaxPosition();
         void moveToMinPosition();
 

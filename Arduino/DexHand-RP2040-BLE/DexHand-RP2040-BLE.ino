@@ -80,8 +80,8 @@ ManagedServo managedServos[NUM_SERVOS] =
 BLEService uartService("6E400001-B5A3-F393-E0A9-E50E24DCCA9E"); // UART service
 
 // UART characteristics
-BLECharacteristic txCharacteristic("6E400003-B5A3-F393-E0A9-E50E24DCCA9E", BLENotify, 32);
-BLECharacteristic rxCharacteristic("6E400002-B5A3-F393-E0A9-E50E24DCCA9E", BLEWrite, 32);
+BLECharacteristic txCharacteristic("6E400003-B5A3-F393-E0A9-E50E24DCCA9E", BLENotify, 40);
+BLECharacteristic rxCharacteristic("6E400002-B5A3-F393-E0A9-E50E24DCCA9E", BLEWrite, 40);
 
 // Heartbeat timer
 uint32_t heartbeat = 0;
@@ -440,7 +440,7 @@ void loop() {
       // See if there's any data for us
       //if (rxCharacteristic.written()) {
       //  Serial.print("BLELoop: ");
-      //  Serial.println(reinterpret_cast<const char*>(rxCharacteristic.value()));
+      //#  Serial.println(reinterpret_cast<const char*>(rxCharacteristic.value()));
       //}
       
     }
