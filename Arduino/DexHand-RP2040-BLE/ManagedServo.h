@@ -45,9 +45,12 @@ class ManagedServo {
 
         inline uint8_t getDefaultPosition() { return mDefaultPosition; }
 
+        // Initialization
         void setupServo();
+
+        // Position control
         void setServoPosition(uint8_t position);
-        uint8_t getServoPosition() const;
+        inline uint8_t getServoPosition() const { return mCurrentPosition; }
         void moveToMaxPosition();
         void moveToMinPosition();
 
@@ -56,6 +59,7 @@ class ManagedServo {
         uint8_t mMinPosition;
         uint8_t mMaxPosition;
         uint8_t mDefaultPosition;
+        uint8_t mCurrentPosition;
         bool mInvertAngles;
         int mISRServoIndex;
 

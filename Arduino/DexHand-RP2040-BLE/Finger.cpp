@@ -7,20 +7,22 @@
 
 
 
-Finger::Finger(ManagedServo& leftPitchServo, ManagedServo& rightPitchServo, ManagedServo& yawServo, ManagedServo& flexionServo) 
+Finger::Finger(ManagedServo& leftPitchServo, ManagedServo& rightPitchServo, ManagedServo& flexionServo) 
 : mLeftPitchServo(leftPitchServo), mRightPitchServo(rightPitchServo), mFlexionServo(flexionServo) {
-    // Default ranges to something sane
+    // Default ranges to something sane, but they can be overriden by a tuning
+    // routine or by the user if desired.
     mPitchRange[0] = 0;
     mPitchRange[1] = 90;
     mYawRange[0] = -20;
     mYawRange[1] = 20;
     mFlexionRange[0] = 0;
     mFlexionRange[1] = 120;
-    mYawBias = 20;
+    mYawBias = 40;
 
     // Targets to nominal
     mPitchTarget = 0;
     mYawTarget = 0;
+    mFlexionTarget = 0;
 
 }
 
@@ -38,7 +40,31 @@ Finger::~Finger() {
 // sideways as the fingers align into more of a fist.
 
 void Finger::update() {
+
+    // Update the pitch servos first
     updatePitchServos();
+
+    // Scale the flexion angle to the range of the flexion servo
+    int32_t position = mapInteger(mFlexionTarget, mFlexionRange[0], mFlexionRange[1], 
+        mFlexionServo.getMinPosition(), mFlexionServo.getMaxPosition());
+    
+    #ifdef DEBUG    // Useful debug printing for tuning
+    Serial.print("FlexTgt: ");
+    Serial.println(mFlexionTarget);
+    Serial.print("FlexRange:");
+    Serial.print(mFlexionRange[0]);
+    Serial.print(" - ");
+    Serial.println(mFlexionRange[1]);
+    Serial.print("ServoRange:");
+    Serial.print(mFlexionServo.getMinPosition());
+    Serial.print(" - ");
+    Serial.println(mFlexionServo.getMaxPosition());
+    Serial.print("FlexPos: ");
+    Serial.println(position);
+    #endif
+
+    assert(position >= mFlexionServo.getMinPosition() && position <= mFlexionServo.getMaxPosition());
+    mFlexionServo.setServoPosition(static_cast<uint8_t>(position));
 }
 
 float Finger::normalizedValue(int32_t value, int32_t min, int32_t max) const {
@@ -60,38 +86,15 @@ int32_t Finger::mapInteger(int32_t value, int32_t inMin, int32_t inMax, int32_t 
 
 
 void Finger::setFlexion(uint8_t flexion) {
-    // Scale the flexion angle to the range of the flexion servo
-    int32_t position = mapInteger(flexion, mFlexionRange[0], mFlexionRange[1], 
-        mFlexionServo.getMinPosition(), mFlexionServo.getMaxPosition());
-    
-    assert(position >= mFlexionServo.getMinPosition() && position <= mFlexionServo.getMaxPosition());
-    mFlexionServo.setServoPosition(static_cast<uint8_t>(position));
-
-    // Trigger update of the finger to account for the new flexion angle
-    update();
-}
-
-uint8_t Finger::getFlexion() const {
-    // Scale the servo position back into the range of the flexion angle
-    int32_t position = mapInteger(mFlexionServo.getServoPosition(), mFlexionServo.getMinPosition(), mFlexionServo.getMaxPosition(), 
-        mFlexionRange[0], mFlexionRange[1]);
-
-    assert(position >= mFlexionRange[0] && position <= mFlexionRange[1]);
-    return static_cast<uint8_t>(position);
+    mFlexionTarget = CLAMP(flexion, getFlexionMin(), getFlexionMax());
 }
 
 void Finger::setPitch(uint8_t pitch) {
     mPitchTarget = CLAMP(pitch, getPitchMin(), getPitchMax());
-
-    // Trigger update of the finger to account for the new pitch angle
-    update();
 }
 
-void Finger::setYaw(uint8_t yaw) {
+void Finger::setYaw(int8_t yaw) {
     mYawTarget = CLAMP(yaw, getYawMin(), getYawMax());
-
-    // Trigger update of the finger to account for the new yaw angle
-    update();
 }
 
 
@@ -111,12 +114,23 @@ void Finger::setYaw(uint8_t yaw) {
 void Finger::updatePitchServos()
 {
     float normalizedFlexion = normalizedValue(getFlexion(), mFlexionRange[0], mFlexionRange[1]);    
-
+    
     // Normalize the yaw
-    float normalizedYaw = normalizedValue(mYawTarget, mYawRange[0], mYawRange[1]);
-
+    float normalizedYaw = normalizedValue(mYawTarget, mYawRange[0], mYawRange[1])-0.5f;
+    
     // Scale the yaw based on the flexion angle, and apply the bias
     float scaledYaw = normalizedYaw * (1.0f - normalizedFlexion) * mYawBias;
+    
+    #ifdef DEBUG   // Useful debug printing for tuning
+    Serial.print("NFlex: ");
+    Serial.print(normalizedFlexion);
+    Serial.print(" YawTgt: ");
+    Serial.print(mYawTarget);
+    Serial.print(" NYaw: ");
+    Serial.print(normalizedYaw);
+    Serial.print("SYaw: ");
+    Serial.println(scaledYaw);
+    #endif
 
     // Compute the pitch on the servos
     int32_t leftPitch = mapInteger(mPitchTarget, mPitchRange[0], mPitchRange[1], 

@@ -2,32 +2,11 @@
 #include <UniversalTimer.h>
 
 #include "ManagedServo.h"
+#include "Finger.h"
 
 
 
-
-
-#define SERVO_PIN_1       2
-#define SERVO_PIN_2       3
-#define SERVO_PIN_3       4
-#define SERVO_PIN_4       5
-#define SERVO_PIN_5       6
-#define SERVO_PIN_6       7
-#define SERVO_PIN_7       8
-#define SERVO_PIN_8       9
-#define SERVO_PIN_9       10
-#define SERVO_PIN_10      11
-#define SERVO_PIN_11      12
-#define SERVO_PIN_12      13
-#define SERVO_PIN_13      14
-#define SERVO_PIN_14      15
-#define SERVO_PIN_15      16
-#define SERVO_PIN_16      17
-#define SERVO_PIN_17      18
-#define SERVO_PIN_18      19
-
-
-
+// ----- Servo Setup -----
 #define NUM_SERVOS       18
 
 #define SERVO_INDEX_LOWER   0
@@ -50,27 +29,41 @@
 #define SERVO_WRIST_R 17
 
 
+// The table below defines the servo parameters for each of the servos in the hand.
+// You may need to adjust these if you are using different servos, or wire the
+// servos to different GPIO pins.
+
 ManagedServo managedServos[NUM_SERVOS] = 
 {
-  ManagedServo(SERVO_PIN_1, 10, 120, 10, false),  // Index Lower 0
-  ManagedServo(SERVO_PIN_2, 60, 160, 60, false),  // Index Upper 1
-  ManagedServo(SERVO_PIN_3, 50, 150, 50, false),  // Middle Lower 2
-  ManagedServo(SERVO_PIN_4, 50, 160, 50, false),  // Middle Upper 3
-  ManagedServo(SERVO_PIN_5, 20, 140, 20, true),   // Ring Lower 4
-  ManagedServo(SERVO_PIN_6, 20, 140, 20, true),   // Ring Upper  5
-  ManagedServo(SERVO_PIN_7, 20, 140, 20, true),   // Pinky Lower 6
-  ManagedServo(SERVO_PIN_8, 20, 140, 20, true),   // Pinky Upper 7
-  ManagedServo(SERVO_PIN_9, 50, 120, 50, false),  // Index Tip 8
-  ManagedServo(SERVO_PIN_10, 50, 120, 50, false), // Middle Tip 9
-  ManagedServo(SERVO_PIN_11, 50, 120, 50, true),  // Ring Tip 10
-  ManagedServo(SERVO_PIN_12, 50, 130, 50, true),  // Pinky Tip 11
-  ManagedServo(SERVO_PIN_13, 50, 160, 50, true),  // Thumb Tip 12
-  ManagedServo(SERVO_PIN_14, 0, 130, 0, false),  // Thumb Right 13
-  ManagedServo(SERVO_PIN_15, 0, 150, 10, false),  // Thumb Left 14
-  ManagedServo(SERVO_PIN_16, 80, 110, 90, false),  // Thumb Rotate 15
-  ManagedServo(SERVO_PIN_17, 0, 180, 90, false),  // Wrist Left 16
-  ManagedServo(SERVO_PIN_18, 0, 180, 90, false)   // Wrist Right 17
+  // Servo GPIO Pin, Min, Max, Default, Inverted
+  ManagedServo(2, 10, 120, 10, false),  // Index Lower 0
+  ManagedServo(3, 60, 160, 60, false),  // Index Upper 1
+  ManagedServo(4, 50, 150, 50, false),  // Middle Lower 2
+  ManagedServo(5, 50, 160, 50, false),  // Middle Upper 3
+  ManagedServo(6, 20, 140, 20, true),   // Ring Lower 4
+  ManagedServo(7, 20, 140, 20, true),   // Ring Upper  5
+  ManagedServo(8, 20, 140, 20, true),   // Pinky Lower 6
+  ManagedServo(9, 20, 140, 20, true),   // Pinky Upper 7
+  ManagedServo(10, 50, 120, 50, false),  // Index Tip 8
+  ManagedServo(11, 50, 120, 50, false), // Middle Tip 9
+  ManagedServo(12, 50, 120, 50, true),  // Ring Tip 10
+  ManagedServo(13, 50, 130, 50, true),  // Pinky Tip 11
+  ManagedServo(14, 50, 160, 50, true),  // Thumb Tip 12
+  ManagedServo(15, 0, 130, 0, false),  // Thumb Right 13
+  ManagedServo(16, 0, 150, 10, false),  // Thumb Left 14
+  ManagedServo(17, 80, 110, 90, false),  // Thumb Rotate 15
+  ManagedServo(18, 0, 180, 90, false),  // Wrist Left 16
+  ManagedServo(19, 0, 180, 90, false)   // Wrist Right 17
 };
+
+#define NUM_FINGERS 4
+Finger fingers[NUM_FINGERS] = {
+  Finger(managedServos[SERVO_INDEX_LOWER], managedServos[SERVO_INDEX_UPPER], managedServos[SERVO_INDEX_TIP]),
+  Finger(managedServos[SERVO_MIDDLE_LOWER], managedServos[SERVO_MIDDLE_UPPER], managedServos[SERVO_MIDDLE_TIP]),
+  Finger(managedServos[SERVO_RING_LOWER], managedServos[SERVO_RING_UPPER], managedServos[SERVO_RING_TIP]),
+  Finger(managedServos[SERVO_PINKY_LOWER], managedServos[SERVO_PINKY_UPPER], managedServos[SERVO_PINKY_TIP])
+};
+
 
 
 
@@ -401,12 +394,29 @@ void processCommand(String cmd)
     connectionTimeout.resetTimerValue();
     Serial.println("Heartbeat received");
   }
-
 }
 
 
-char buffer[255];
-int bufPos = 0;
+// This method is called to process all of the higher level objects (Finger,Thumb)
+// and update the servo positions based on the current hand angles.
+void updateHand()
+{
+  // Update fingers
+  for (int index = 0; index < 1; index++)
+  {
+    fingers[index].update();
+  }
+  // Update thumb
+
+  #ifdef DEBUG  // Useful debug prints for tuning
+  Serial.print("Pitch1:");
+  Serial.print(managedServos[SERVO_INDEX_LOWER].getServoPosition());
+  Serial.print(" Pitch2:");
+  Serial.print(managedServos[SERVO_INDEX_UPPER].getServoPosition());
+  Serial.print(" Flex:");
+  Serial.println(managedServos[SERVO_INDEX_TIP].getServoPosition());
+  #endif
+}
 
 void loop() {
 
@@ -435,9 +445,10 @@ void loop() {
   if (central) {  // if a central is connected to the peripheral:
     Serial.print("Connected to central - entering BLE streaming mode:");
     Serial.println(central.address());  // print the central's MAC address
-    
+   
     // Start a fresh connection timeout timer
     connectionTimeout.resetTimerValue();
+
 
     while (central.connected()) {  // while the central is still connected to peripheral:
        
@@ -455,6 +466,9 @@ void loop() {
         central.disconnect();
         break;
       }
+
+      // Update the hand angles based on any changes or computations
+      //updateHand();
 
       // See if there's any data for us
       //if (rxCharacteristic.written()) {
@@ -478,9 +492,6 @@ void rxHandler(BLEDevice central, BLECharacteristic characteristic) {
   {
     receivedData = receivedData.substring(0, newlinePos);
     processCommand(receivedData);
-
-    Serial.print("rxHandler:");
-    Serial.println(receivedData);  // print the data
   }  
 }
 
@@ -496,11 +507,31 @@ void dofHandler(BLEDevice central, BLECharacteristic characteristic) {
   {
     float angle = (data[i] - 128)*360.0/256.0;
     unpackedAngles[i] = static_cast<int16_t>(angle);
-  
+  }
+
+  #ifdef DEBUG  // Useful debug prints for tuning
+  // Print out the angles
+  Serial.print("DOF: ");
+    
+  for (int i = 0; i < DOF_COUNT; i++) {
     Serial.print(unpackedAngles[i]);
     Serial.print(" ");
   }
   Serial.println();
+  #endif
 
+  // Now, these angles can be sent to our controllers to adjust the hand poses
+
+  // Fingers first
+  for (int i = 0; i < NUM_FINGERS; i++)
+  {
+    fingers[i].setPitch(unpackedAngles[i*3]);
+    fingers[i].setYaw(unpackedAngles[i*3+1]);
+    fingers[i].setFlexion(unpackedAngles[i*3+2]);
+  }
+
+  // Thumb
+
+  updateHand();
     
 }

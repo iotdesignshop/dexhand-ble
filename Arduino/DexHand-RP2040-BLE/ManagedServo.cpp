@@ -8,7 +8,9 @@
 
 
 ManagedServo::ManagedServo(uint8_t servoPin, uint8_t minPosition, uint8_t maxPosition, uint8_t defaultPosition, bool invertAngles)
-: mServoPin(servoPin), mMinPosition(minPosition), mMaxPosition(maxPosition), mDefaultPosition(defaultPosition), mInvertAngles(invertAngles), mISRServoIndex(-1) {
+: mServoPin(servoPin), mMinPosition(minPosition), mMaxPosition(maxPosition), 
+    mDefaultPosition(defaultPosition), mCurrentPosition(defaultPosition), 
+    mInvertAngles(invertAngles), mISRServoIndex(-1) {
 }
 
 ManagedServo::~ManagedServo() {
@@ -30,6 +32,8 @@ void ManagedServo::setupServo()
 }
 
 void ManagedServo::setServoPosition(uint8_t position) {
+    mCurrentPosition = position;
+
     if (mInvertAngles) {
         position = 180 - position;
     }
@@ -46,15 +50,6 @@ void ManagedServo::setServoPosition(uint8_t position) {
         Serial.print("Error setting servo position on pin ");
         Serial.println(mServoPin);
     }
-}
-
-uint8_t ManagedServo::getServoPosition() const
-{
-    int position = RP2040_ISR_Servos.getPosition(mISRServoIndex);
-    if (mInvertAngles) {
-        position = 180 - position;
-    }
-    return static_cast<uint8_t>(position);
 }
 
 void ManagedServo::moveToMaxPosition() {

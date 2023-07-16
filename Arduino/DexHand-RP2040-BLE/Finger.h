@@ -26,7 +26,7 @@ class ManagedServo;
 
 class Finger {
     public:
-        Finger(ManagedServo& leftPitchServo, ManagedServo& rightPitchServo, ManagedServo& yawServo, ManagedServo& flexionServo);
+        Finger(ManagedServo& leftPitchServo, ManagedServo& rightPitchServo, ManagedServo& flexionServo);
         virtual ~Finger();
 
         // Loop
@@ -35,12 +35,12 @@ class Finger {
         // Positioning
         inline void setPosition(uint8_t pitch, uint8_t yaw, uint8_t flexion) { setPitch(pitch); setYaw(yaw); setFlexion(flexion);}
         void setPitch(uint8_t pitch);
-        void setYaw(uint8_t yaw);
+        void setYaw(int8_t yaw);
         void setFlexion(uint8_t flexion);
         
         inline uint8_t getPitch() const { return mPitchTarget;}
         inline int8_t getYaw() const { return mYawTarget;}
-        uint8_t getFlexion() const;
+        inline uint8_t getFlexion() const { return mFlexionTarget;}
 
         // Ranges
         inline void setPitchRange(uint8_t min, uint8_t max) { mPitchRange[0] = min; mPitchRange[1] = max; }
@@ -67,6 +67,7 @@ class Finger {
 
         uint8_t mPitchTarget;
         int8_t mYawTarget;
+        uint8_t mFlexionTarget;
 
         uint8_t mPitchRange[2];
         int8_t mYawRange[2];
