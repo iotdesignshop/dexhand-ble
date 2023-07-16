@@ -234,6 +234,10 @@ UART_SERVICE_UUID = "6E400001-B5A3-F393-E0A9-E50E24DCCA9E"
 UART_RX_CHAR_UUID = "6E400002-B5A3-F393-E0A9-E50E24DCCA9E"
 UART_TX_CHAR_UUID = "6E400003-B5A3-F393-E0A9-E50E24DCCA9E"
 
+DOF_SERVICE_UUID = "1e16c1b4-1936-4f0e-ab62-5e0a702a4935"
+DOF_CHAR_UUID = "1e16c1b5-1936-4f0e-ab62-5e0a702a4935"
+
+
 # TIP: you can get this function and more from the ``more-itertools`` package.
 def sliced(data: bytes, n: int) -> Iterator[bytes]:
     """
@@ -280,18 +284,22 @@ async def ble_communication(tx_queue):
     async with BleakClient(device, disconnected_callback=handle_disconnect) as client:
         await client.start_notify(UART_TX_CHAR_UUID, handle_rx)
 
-        print("Connected, start typing and press ENTER...")
+        print("Connected to DexHand")
 
-        loop = asyncio.get_running_loop()
+        # Nordic UART Service (NUS) is used to send commands to the hand
         nus = client.services.get_service(UART_SERVICE_UUID)
         rx_char = nus.get_characteristic(UART_RX_CHAR_UUID)
 
-        # Schedule a timer to send a heartbeat message to the hand every 5 seconds
+        # Custom DOF service is used to send joint angles to the hand
+        dof_service = client.services.get_service(DOF_SERVICE_UUID)
+        dof_char = dof_service.get_characteristic(DOF_CHAR_UUID)
+
+        # Schedule a timer to send a heartbeat message to the hand every 3 seconds via UART
         async def send_heartbeat():
             hb = 0
             
             while True:
-                await asyncio.sleep(5)
+                await asyncio.sleep(3)
                 hb_msg = "HB:"+str(hb)+"\n"
                 hb += 1
                 await client.write_gatt_char(rx_char, hb_msg.encode(), True)
@@ -307,32 +315,19 @@ async def ble_communication(tx_queue):
             # Grab the latest set of angles
             joint_angles = await tx_queue.get()
 
-            # Encode the joint angles into 16-bit integers
-            data = bytearray()
-            data += b"POS:"
-            for angle in joint_angles:
-                data += struct.pack('<h', int(angle))
-            data += b"\n"
+            # Encode the joint angles into 8-bit integers. We scale everything to 0-255
+            # to represent -180 to 180 degrees with 128 as the zero point.
+            clipped = np.clip(joint_angles, -180, 180)
+            scaled = np.interp(clipped, (-180, 180), (0, 255))
+            encoded = scaled.astype(np.uint8)
+
+            data = bytearray(encoded)
             
-            # Send the joint angles to the hand
-            for s in sliced(data, rx_char.max_write_without_response_size):
-                await client.write_gatt_char(rx_char, s)
+            # Send the joint angles to the hand without response as it's faster
+            await client.write_gatt_char(dof_char, data)
 
-            #await client.write_gatt_char(rx_char, data, True)
-            #print("Sent:", data, "Bytes:", len(data))
-
-            # This waits until you type a line and press ENTER.
-            # A real terminal program might put stdin in raw mode so that things
-            # like CTRL+C get passed to the remote device.
-            #data = await loop.run_in_executor(None, sys.stdin.buffer.readline)
-
-            # data will be empty on EOF (e.g. CTRL+D on *nix)
-            #if not data:
-            #    break
-
-            # Send the data via BLE
-            #await client.write_gatt_char(rx_char, data, True)
-            #print("Sent:", data)
+            # Yield
+            await asyncio.sleep(0.01)
 
 
 async def main():

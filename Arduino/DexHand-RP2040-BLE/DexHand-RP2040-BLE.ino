@@ -77,11 +77,24 @@ ManagedServo managedServos[NUM_SERVOS] =
 
 
 // ----- BLE Setup -----
+
+// The device implments the Nordic UART service to use as a general purpose command
+// channel, and a custom service to use for streaming the DOF angles for the joints 
+// in the hand.
+
+// UART service
 BLEService uartService("6E400001-B5A3-F393-E0A9-E50E24DCCA9E"); // UART service
 
 // UART characteristics
-BLECharacteristic txCharacteristic("6E400003-B5A3-F393-E0A9-E50E24DCCA9E", BLENotify, 40);
-BLECharacteristic rxCharacteristic("6E400002-B5A3-F393-E0A9-E50E24DCCA9E", BLEWrite, 40);
+BLECharacteristic txCharacteristic("6E400003-B5A3-F393-E0A9-E50E24DCCA9E", BLENotify, 20);
+BLECharacteristic rxCharacteristic("6E400002-B5A3-F393-E0A9-E50E24DCCA9E", BLEWrite, 20);
+
+// Custom DOF streaming service
+BLEService dofService("1e16c1b4-1936-4f0e-ab62-5e0a702a4935");
+
+// Custom DOF streaming characteristics
+BLECharacteristic dofCharacteristic("1e16c1b5-1936-4f0e-ab62-5e0a702a4935", BLEWriteWithoutResponse, 20);
+
 
 // Heartbeat timer
 uint32_t heartbeat = 0;
@@ -262,8 +275,13 @@ void setup() {
   uartService.addCharacteristic(rxCharacteristic); // Add the rxCharacteristic
   uartService.addCharacteristic(txCharacteristic); // Add the txCharacteristic
 
+  dofService.addCharacteristic(dofCharacteristic); // Add the dofCharacteristic
+
   BLE.addService(uartService); // Add the service
+  BLE.addService(dofService); // Add the service
+
   rxCharacteristic.setEventHandler(BLEWritten, rxHandler);  // Assign event handler for characteristic
+  dofCharacteristic.setEventHandler(BLEWritten, dofHandler);  // Assign event handler for characteristic
   
   BLE.advertise();  // Start advertising
   Serial.println("Bluetooth device active, waiting for connections...");
@@ -381,6 +399,7 @@ void processCommand(String cmd)
   if (cmdType == "hb")
   {
     connectionTimeout.resetTimerValue();
+    Serial.println("Heartbeat received");
   }
 
 }
@@ -462,8 +481,26 @@ void rxHandler(BLEDevice central, BLECharacteristic characteristic) {
 
     Serial.print("rxHandler:");
     Serial.println(receivedData);  // print the data
-  }
+  }  
+}
 
+#define DOF_COUNT 15
+void dofHandler(BLEDevice central, BLECharacteristic characteristic) {
+
+  // The angles are packed into 8-bit values centered at 128, so we need to
+  // unpack them and convert them back into decimal angles for the servos
+  const uint8_t* data = characteristic.value();
+  int16_t unpackedAngles[DOF_COUNT];
+
+  for (int i = 0; i < DOF_COUNT; i++)
+  {
+    float angle = (data[i] - 128)*360.0/256.0;
+    unpackedAngles[i] = static_cast<int16_t>(angle);
   
-  
+    Serial.print(unpackedAngles[i]);
+    Serial.print(" ");
+  }
+  Serial.println();
+
+    
 }
