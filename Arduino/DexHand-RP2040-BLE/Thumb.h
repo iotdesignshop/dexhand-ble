@@ -1,42 +1,42 @@
-#ifndef FINGER_H
-#define FINGER_H
+#ifndef THUMB_H
+#define THUMB_H
 
 /*
-Finger Definition
+Thumb Definition
 
-Finger is a class that represents a single finger on the DexHand. It is
-responsible for managing the servos that control the finger's joints.
+Thumb is a class that represents the thumb on the DexHand. It is
+responsible for managing the servos that control the thumb joints.
 
-Each finger consists of 3 servos. There are two differential servos
+Each thumb consists of 4 servos. There are two differential servos
 that control the knuckle pitch and yaw. The third servo controls the
-finger's flexion which is the tendon running through the finger
-to the tip.
+thumb's flexion which is the tendon running through the finger
+to the tip. And the fourth controls the roll of the thumb.
 
-The finger class mixes together the signals for the two differential
+The thumb class mixes together the signals for the two differential
 servos to create the poses specified by the pitch and yaw angles from
 the controller.
 
-Finger yaw is also modulated by the flexion angle. As the finger flexes,
-the yaw angle is reduced to keep the finger from bending sideways as the
-fingers align into more of a fist.
+Roll is also automatically computed based on the pitch and yaw angles.
+
 */
 #include <Arduino.h>
 
 class ManagedServo;
 
-class Finger {
+class Thumb {
     public:
-        Finger(ManagedServo& leftPitchServo, ManagedServo& rightPitchServo, ManagedServo& flexionServo);
-        virtual ~Finger();
+        Thumb(ManagedServo& leftPitchServo, ManagedServo& rightPitchServo, ManagedServo& flexionServo, ManagedServo& rollServo);
+        virtual ~Thumb();
 
         // Loop
-        void update();          // Called from the main loop to update the finger's servos
+        void update();          // Called from the main loop to update the thumb servos
 
         // Positioning
         inline void setPosition(uint8_t pitch, uint8_t yaw, uint8_t flexion) { setPitch(pitch); setYaw(yaw); setFlexion(flexion);}
         void setPitch(uint8_t pitch);
         void setYaw(int8_t yaw);
         void setFlexion(uint8_t flexion);
+        void setRoll(uint8_t roll);
         
         inline uint8_t getPitch() const { return mPitchTarget;}
         inline int8_t getYaw() const { return mYawTarget;}
@@ -47,7 +47,8 @@ class Finger {
         inline void setYawRange(int8_t min, int8_t max) { mYawRange[0] = min; mYawRange[1] = max; }
         inline void setYawBias(uint8_t bias) { mYawBias = bias; }
         inline void setFlexionRange(uint8_t min, uint8_t max) { mFlexionRange[0] = min; mFlexionRange[1] = max; }
-        
+        inline void setRollRange(uint8_t min, uint8_t max) { mRollRange[0] = min; mRollRange[1] = max; }    
+
         inline uint8_t getPitchMin() const { return mPitchRange[0]; }
         inline uint8_t getPitchMax() const { return mPitchRange[1]; }
         
@@ -58,29 +59,30 @@ class Finger {
         inline uint8_t getFlexionMin() const { return mFlexionRange[0]; }
         inline uint8_t getFlexionMax() const { return mFlexionRange[1]; }
 
+        inline uint8_t getRollMin() const { return mRollRange[0]; }
+        inline uint8_t getRollMax() const { return mRollRange[1]; }
+
+
 
 
     private:
         ManagedServo& mLeftPitchServo;
         ManagedServo& mRightPitchServo;
         ManagedServo& mFlexionServo;
+        ManagedServo& mRollServo;
 
         uint8_t mPitchTarget;
         int8_t mYawTarget;
         uint8_t mFlexionTarget;
+        uint8_t mRollTarget;
 
         uint8_t mPitchRange[2];
         int8_t mYawRange[2];
         uint8_t mFlexionRange[2];
+        uint8_t mRollRange[2];
         uint8_t mYawBias;
 
         void updatePitchServos();
-
- 
-
-
-        
-
 };
 
 

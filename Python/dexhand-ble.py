@@ -131,7 +131,7 @@ def analyze_hand_landmarks(hand_landmarks):
     #print(int(joint_angles[9]), int(joint_angles[10]), int(joint_angles[11]))
 
     # Thumb, bit of a guess for basal rotation might be better automatic
-    joint_angles[12] = 180-angle_between(joint_xyz[1], joint_xyz[2], joint_xyz[3])
+    joint_angles[12] = 180-angle_between(joint_xyz[1], joint_xyz[2], joint_xyz[4])
     joint_angles[13] = 60-angle_between(joint_xyz[2], joint_xyz[1], joint_xyz[5])
     joint_angles[14] = 180-angle_between(joint_xyz[2], joint_xyz[3], joint_xyz[4])
     #joint_angles[15] = angle_between(joint_xyz[9], joint_xyz[5], joint_xyz[2])

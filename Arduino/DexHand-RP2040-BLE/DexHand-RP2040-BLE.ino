@@ -3,6 +3,7 @@
 
 #include "ManagedServo.h"
 #include "Finger.h"
+#include "Thumb.h"
 
 
 
@@ -63,6 +64,9 @@ Finger fingers[NUM_FINGERS] = {
   Finger(managedServos[SERVO_RING_LOWER], managedServos[SERVO_RING_UPPER], managedServos[SERVO_RING_TIP]),
   Finger(managedServos[SERVO_PINKY_LOWER], managedServos[SERVO_PINKY_UPPER], managedServos[SERVO_PINKY_TIP])
 };
+
+Thumb thumb(managedServos[SERVO_THUMB_LEFT], managedServos[SERVO_THUMB_RIGHT], managedServos[SERVO_THUMB_TIP], managedServos[SERVO_THUMB_ROTATE]);
+
 
 
 
@@ -407,6 +411,7 @@ void updateHand()
     fingers[index].update();
   }
   // Update thumb
+  thumb.update();
 
   #ifdef DEBUG  // Useful debug prints for tuning
   Serial.print("Pitch1:");
@@ -531,6 +536,10 @@ void dofHandler(BLEDevice central, BLECharacteristic characteristic) {
   }
 
   // Thumb
+  thumb.setPitch(unpackedAngles[12]);
+  thumb.setYaw(unpackedAngles[13]);
+  thumb.setFlexion(unpackedAngles[14]);
+
 
   updateHand();
     
