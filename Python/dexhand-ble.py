@@ -108,13 +108,13 @@ def analyze_hand_landmarks(hand_landmarks):
     # First finger, fore or index
     # Angles calculated correspond to knuckle flex, knuckle yaw and long tendon length for all fingers,
     joint_angles[0] = 180-angle_between(joint_xyz[0], joint_xyz[5], joint_xyz[6])
-    joint_angles[1] = 90-angle_between(joint_xyz[9], joint_xyz[5], joint_xyz[6])
+    joint_angles[1] = 90-angle_between(joint_xyz[9], joint_xyz[5], joint_xyz[6])-10     # Requires a little extra offset of 10 deg
     joint_angles[2] = 180-angle_between(joint_xyz[5], joint_xyz[6], joint_xyz[7])
     #print(int(joint_angles[0]), int(joint_angles[1]), int(joint_angles[2]))
 
     # Second finger, middle
     joint_angles[3] = 180-angle_between(joint_xyz[0], joint_xyz[9], joint_xyz[10])
-    joint_angles[4] = 90-angle_between(joint_xyz[13], joint_xyz[9], joint_xyz[10])
+    joint_angles[4] = angle_between(joint_xyz[5], joint_xyz[9], joint_xyz[10])-90-15    # Requires a little extra offset of 10 deg
     joint_angles[5] = 180-angle_between(joint_xyz[9], joint_xyz[10], joint_xyz[11])
     #print(joint_angles[3], joint_angles[4], joint_angles[5])
 

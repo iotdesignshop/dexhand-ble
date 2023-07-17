@@ -37,18 +37,18 @@
 ManagedServo managedServos[NUM_SERVOS] = 
 {
   // Servo GPIO Pin, Min, Max, Default, Inverted
-  ManagedServo(2, 10, 120, 10, false),  // Index Lower 0
+  ManagedServo(2, 10, 110, 10, false),  // Index Lower 0
   ManagedServo(3, 60, 160, 60, false),  // Index Upper 1
   ManagedServo(4, 50, 150, 50, false),  // Middle Lower 2
   ManagedServo(5, 50, 160, 50, false),  // Middle Upper 3
-  ManagedServo(6, 20, 140, 20, true),   // Ring Lower 4
-  ManagedServo(7, 20, 140, 20, true),   // Ring Upper  5
-  ManagedServo(8, 20, 140, 20, true),   // Pinky Lower 6
-  ManagedServo(9, 20, 140, 20, true),   // Pinky Upper 7
+  ManagedServo(7, 20, 140, 20, true),   // Ring Lower 4
+  ManagedServo(6, 20, 140, 20, true),   // Ring Upper  5
+  ManagedServo(9, 20, 140, 20, true),   // Pinky Lower 6
+  ManagedServo(8, 20, 150, 20, true),   // Pinky Upper 7
   ManagedServo(10, 50, 120, 50, false),  // Index Tip 8
   ManagedServo(11, 50, 120, 50, false), // Middle Tip 9
-  ManagedServo(12, 50, 120, 50, true),  // Ring Tip 10
-  ManagedServo(13, 50, 130, 50, true),  // Pinky Tip 11
+  ManagedServo(12, 50, 130, 50, true),  // Ring Tip 10
+  ManagedServo(13, 50, 110, 50, true),  // Pinky Tip 11
   ManagedServo(14, 50, 160, 50, true),  // Thumb Tip 12
   ManagedServo(15, 0, 130, 0, false),  // Thumb Right 13
   ManagedServo(16, 0, 150, 10, false),  // Thumb Left 14
@@ -406,7 +406,7 @@ void processCommand(String cmd)
 void updateHand()
 {
   // Update fingers
-  for (int index = 0; index < 1; index++)
+  for (int index = 0; index < NUM_FINGERS; index++)
   {
     fingers[index].update();
   }
@@ -485,6 +485,7 @@ void loop() {
 
     Serial.print("Disconnected from central: ");
     Serial.println(central.address());
+    setDefaultPose();
   }
 }
 
@@ -536,8 +537,8 @@ void dofHandler(BLEDevice central, BLECharacteristic characteristic) {
   }
 
   // Thumb
-  thumb.setPitch(unpackedAngles[12]);
-  thumb.setYaw(unpackedAngles[13]);
+  //thumb.setPitch(unpackedAngles[12]);
+  //thumb.setYaw(unpackedAngles[13]);
   thumb.setFlexion(unpackedAngles[14]);
 
 

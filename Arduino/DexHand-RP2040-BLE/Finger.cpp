@@ -12,12 +12,12 @@ Finger::Finger(ManagedServo& leftPitchServo, ManagedServo& rightPitchServo, Mana
     // Default ranges to something sane, but they can be overriden by a tuning
     // routine or by the user if desired.
     mPitchRange[0] = 0;
-    mPitchRange[1] = 90;
+    mPitchRange[1] = 45;
     mYawRange[0] = -20;
     mYawRange[1] = 20;
     mFlexionRange[0] = 0;
     mFlexionRange[1] = 120;
-    mYawBias = 40;
+    mYawBias = 60;
 
     // Targets to nominal
     mPitchTarget = 0;
@@ -124,8 +124,18 @@ void Finger::updatePitchServos()
         mRightPitchServo.getMinPosition(), mRightPitchServo.getMaxPosition());
 
     // Mix in the yaw
-    leftPitch = static_cast<int32_t>(leftPitch - scaledYaw);
-    rightPitch = static_cast<int32_t>(rightPitch + scaledYaw);
+    leftPitch = static_cast<int32_t>(leftPitch + scaledYaw);
+    rightPitch = static_cast<int32_t>(rightPitch - scaledYaw);
+
+    // If flexion is > 50%, mix in additional pitch
+    if (normalizedFlexion > 0.5f) {
+        int flexionGain = static_cast<int32_t>((normalizedFlexion - 0.5f) * 30.0f);
+        Serial.print("FlexionGain: ");
+        Serial.println(flexionGain);
+
+        leftPitch += flexionGain;
+        rightPitch += flexionGain;
+    }
 
     // Clamp
     leftPitch = CLAMP(leftPitch, mLeftPitchServo.getMinPosition(), mLeftPitchServo.getMaxPosition());
