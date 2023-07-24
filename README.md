@@ -66,7 +66,7 @@ python -m venv mp_env
 ```
 Then, install the requirements.txt as follows:
 ```
-$ pip install -r requirements.txt
+(mp-env)> pip install -r requirements.txt
 ```
 
 
