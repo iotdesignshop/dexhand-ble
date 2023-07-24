@@ -33,48 +33,49 @@ FONT_THICKNESS = 1
 HANDEDNESS_TEXT_COLOR = (88, 205, 54) # vibrant green
 
 def draw_landmarks_on_image(rgb_image, detection_result):
-  hand_landmarks_list = detection_result.hand_landmarks
-  handedness_list = detection_result.handedness
-  annotated_image = np.copy(rgb_image)
+    """Draws the hand landmarks on the image for debugging purposes."""
+    hand_landmarks_list = detection_result.hand_landmarks
+    handedness_list = detection_result.handedness
+    annotated_image = np.copy(rgb_image)
 
-  # Loop through the detected hands to visualize.
-  for idx in range(len(hand_landmarks_list)):
-    hand_landmarks = hand_landmarks_list[idx]
-    handedness = handedness_list[idx]
+    # Loop through the detected hands to visualize.
+    for idx in range(len(hand_landmarks_list)):
+        hand_landmarks = hand_landmarks_list[idx]
+        handedness = handedness_list[idx]
 
-    # Draw the hand landmarks.
-    hand_landmarks_proto = landmark_pb2.NormalizedLandmarkList()
-    hand_landmarks_proto.landmark.extend([
-      landmark_pb2.NormalizedLandmark(x=landmark.x, y=landmark.y, z=landmark.z) for landmark in hand_landmarks
-    ])
-    solutions.drawing_utils.draw_landmarks(
-      annotated_image,
-      hand_landmarks_proto,
-      solutions.hands.HAND_CONNECTIONS,
-      solutions.drawing_styles.get_default_hand_landmarks_style(),
-      solutions.drawing_styles.get_default_hand_connections_style())
+        # Draw the hand landmarks.
+        hand_landmarks_proto = landmark_pb2.NormalizedLandmarkList()
+        hand_landmarks_proto.landmark.extend([
+            landmark_pb2.NormalizedLandmark(x=landmark.x, y=landmark.y, z=landmark.z) for landmark in hand_landmarks
+        ])
+        solutions.drawing_utils.draw_landmarks(
+            annotated_image,
+            hand_landmarks_proto,
+            solutions.hands.HAND_CONNECTIONS,
+            solutions.drawing_styles.get_default_hand_landmarks_style(),
+            solutions.drawing_styles.get_default_hand_connections_style())
 
-    # Get the top left corner of the detected hand's bounding box.
-    height, width, _ = annotated_image.shape
-    x_coordinates = [landmark.x for landmark in hand_landmarks]
-    y_coordinates = [landmark.y for landmark in hand_landmarks]
-    text_x = int(min(x_coordinates) * width)
-    text_y = int(min(y_coordinates) * height) - MARGIN
+        # Get the top left corner of the detected hand's bounding box.
+        height, width, _ = annotated_image.shape
+        x_coordinates = [landmark.x for landmark in hand_landmarks]
+        y_coordinates = [landmark.y for landmark in hand_landmarks]
+        text_x = int(min(x_coordinates) * width)
+        text_y = int(min(y_coordinates) * height) - MARGIN
 
-    # Draw handedness (left or right hand) on the image.
-    cv2.putText(annotated_image, f"{handedness[0].category_name}",
-                (text_x, text_y), cv2.FONT_HERSHEY_DUPLEX,
-                FONT_SIZE, HANDEDNESS_TEXT_COLOR, FONT_THICKNESS, cv2.LINE_AA)
-    
-    # Draw marker numbers on the image
-    for i in range(21):
-        cv2.putText(annotated_image, f"{i}",
-                (int(hand_landmarks[i].x * width), int(hand_landmarks[i].y * height)), cv2.FONT_HERSHEY_DUPLEX,
-                FONT_SIZE/2, (0,0,0), FONT_THICKNESS, cv2.LINE_AA)
+        # Draw handedness (left or right hand) on the image.
+        cv2.putText(annotated_image, f"{handedness[0].category_name}",
+                    (text_x, text_y), cv2.FONT_HERSHEY_DUPLEX,
+                    FONT_SIZE, HANDEDNESS_TEXT_COLOR, FONT_THICKNESS, cv2.LINE_AA)
 
-  return annotated_image
+        # Draw marker numbers on the image
+        for i in range(21):
+            cv2.putText(annotated_image, f"{i}",
+                    (int(hand_landmarks[i].x * width), int(hand_landmarks[i].y * height)), cv2.FONT_HERSHEY_DUPLEX,
+                    FONT_SIZE/2, (0,0,0), FONT_THICKNESS, cv2.LINE_AA)
 
-def millis() -> int:
+    return annotated_image
+
+def millis():
     """Get the current time in milliseconds."""
     return int(round(time.time() * 1000))
 
@@ -101,7 +102,6 @@ def analyze_hand_landmarks(hand_landmarks):
     for i in range(21):
         joint_xyz[i] = np.array([hand_landmarks[i].x, hand_landmarks[i].y, hand_landmarks[i].z])
     
-
     # Create storage for the angles
     joint_angles = np.zeros(15)
 
@@ -134,14 +134,14 @@ def analyze_hand_landmarks(hand_landmarks):
     joint_angles[12] = 180-angle_between(joint_xyz[1], joint_xyz[2], joint_xyz[4])
     joint_angles[13] = 60-angle_between(joint_xyz[2], joint_xyz[1], joint_xyz[5])
     joint_angles[14] = 180-angle_between(joint_xyz[2], joint_xyz[3], joint_xyz[4])
-    #joint_angles[15] = angle_between(joint_xyz[9], joint_xyz[5], joint_xyz[2])
+    #joint_angles[15] = angle_between(joint_xyz[9], joint_xyz[5], joint_xyz[2])     # Ignoring thumb roll for now
     #print(joint_angles[12], joint_angles[13], joint_angles[14], joint_angles[15])
 
     return joint_angles
 
 # Angle debug display
 def draw_angles_on_image(image, joint_angles):
-    """Draw the joint angles on the image."""
+    """Draw the joint angles on the image for debugging purposes"""
     height, width, _ = image.shape
 
     # Draw the finger angles
@@ -172,7 +172,9 @@ async def hand_tracking(tx_queue):
     VisionRunningMode = mp.tasks.vision.RunningMode
 
 
-    # Create a hand landmarker instance with the video mode:
+    # Create a hand landmarker instance in video mode. This gets mediapipe to 
+    # run in a synchronous mode. It's a slight deviation from the asynch mode they
+    # suggest for real-time, but easier to manage for this demo.
     options = HandLandmarkerOptions(
         base_options=BaseOptions(model_asset_path='models/hand_landmarker.task'),
         running_mode=VisionRunningMode.VIDEO)
@@ -185,6 +187,8 @@ async def hand_tracking(tx_queue):
         
         try: 
             while cap.isOpened():
+
+                # Read franme from OpenCV
                 ret, frame = cap.read()
                 if not ret:
                     break
@@ -212,15 +216,17 @@ async def hand_tracking(tx_queue):
                         annotated_image = draw_angles_on_image(annotated_image, joint_angles)
                         pass
 
+                # Draw the frame
                 cv2.imshow('DexHand BLE', annotated_image)
-
                 
                 # Yield
-                await asyncio.sleep(0.01)
+                await asyncio.sleep(0)
 
                 # Check for escape key
                 if cv2.waitKey(5) & 0xFF == 27:
-                    raise Exception('User pressed ESC')
+                     # Cancel all tasks
+                    for task in asyncio.all_tasks():
+                        task.cancel()
         
         except asyncio.CancelledError:
             print('Hand tracking task has been cancelled.')
@@ -230,6 +236,7 @@ async def hand_tracking(tx_queue):
 
 
 
+# Services and characteristics we use for communication with the hand
 UART_SERVICE_UUID = "6E400001-B5A3-F393-E0A9-E50E24DCCA9E"
 UART_RX_CHAR_UUID = "6E400002-B5A3-F393-E0A9-E50E24DCCA9E"
 UART_TX_CHAR_UUID = "6E400003-B5A3-F393-E0A9-E50E24DCCA9E"
@@ -246,23 +253,32 @@ def sliced(data: bytes, n: int) -> Iterator[bytes]:
     """
     return takewhile(len, (data[i : i + n] for i in count(0, n)))
 
-       
+# Main BLE communication task       
 async def ble_communication(tx_queue):
-    """This is a simple transmission scheme that uses the Nordic Semiconductor
-    (nRF) UART service to stream commands and data to the DexHand. 
-    """
+    """ This task handles communication with the DexHand over BLE."""
 
     def dexhand_devices(device: BLEDevice, adv: AdvertisementData):
         if (adv.local_name is not None) and ("DexHand" in adv.local_name):
             return True
         return False
 
-    device = await BleakScanner.find_device_by_filter(dexhand_devices)
+    try:
+        # Scan for the DexHand device
+        deviceFound = False
+        while (not deviceFound):
+            print("Scanning for DexHand devices...")
 
-    if device is None:
-        print("No DexHand device was found to establish a connection.")
-        sys.exit(1)
+            device = await BleakScanner.find_device_by_filter(dexhand_devices, timeout=10.0)
 
+            if device is None:
+                print("No DexHand device was found. Scanning again...")
+            else:
+                print("Found DexHand device:", device.name)
+                deviceFound = True
+    except asyncio.CancelledError:
+            print('Communication task has been cancelled.')
+            return
+    
     def handle_disconnect(_: BleakClient):
         print("Device was disconnected, goodbye.")
         # cancelling all tasks effectively ends the program
@@ -278,7 +294,7 @@ async def ble_communication(tx_queue):
         if (data.startswith("HB:")):
             print("Heartbeat received from hand: ", data[3:])
         else:
-            print("Unknown message received:", data)
+            print("Unknown message from hand received:", data)
 
     
     async with BleakClient(device, disconnected_callback=handle_disconnect) as client:
@@ -294,7 +310,9 @@ async def ble_communication(tx_queue):
         dof_service = client.services.get_service(DOF_SERVICE_UUID)
         dof_char = dof_service.get_characteristic(DOF_CHAR_UUID)
 
-        # Schedule a timer to send a heartbeat message to the hand every 3 seconds via UART
+        # Schedule a timer to send a heartbeat message to the hand every 3 seconds via UART. 
+        # The Arduino firmware auto-disconnects if it doesn't receive a periodic heartbeat
+        # in order to prevent it from getting hung up on a connection that is left open.
         async def send_heartbeat():
             hb = 0
             
@@ -306,28 +324,40 @@ async def ble_communication(tx_queue):
 
         asyncio.create_task(send_heartbeat())
 
-        while True:
+        try:
+            while True:
 
-            # Throw away any surplus queued joint angles - we only want to transmit the latest
-            while (tx_queue.qsize() > 1):
-                tx_queue.get_nowait()
+                # Throw away any surplus queued joint angles - we only want to transmit the latest.
+                # We're currently keeping them in a queue in case we want to do something else with them
+                # in the future, but for now we just want the latest.
+                while (tx_queue.qsize() > 1):
+                    tx_queue.get_nowait()
 
-            # Grab the latest set of angles
-            joint_angles = await tx_queue.get()
+                # Grab the latest set of angles
+                joint_angles = await tx_queue.get()
 
-            # Encode the joint angles into 8-bit integers. We scale everything to 0-255
-            # to represent -180 to 180 degrees with 128 as the zero point.
-            clipped = np.clip(joint_angles, -180, 180)
-            scaled = np.interp(clipped, (-180, 180), (0, 255))
-            encoded = scaled.astype(np.uint8)
+                # Encode the joint angles into 8-bit integers. We scale everything to 0-255
+                # to represent -180 to 180 degrees with 128 as the zero point.
+                clipped = np.clip(joint_angles, -180, 180)
+                scaled = np.interp(clipped, (-180, 180), (0, 255))
+                encoded = scaled.astype(np.uint8)
 
-            data = bytearray(encoded)
+                data = bytearray(encoded)
+                
+                # Send the joint angles to the hand without response as it's faster
+                await client.write_gatt_char(dof_char, data)
+
+                # Yield
+                await asyncio.sleep(0)
+        
+        except asyncio.CancelledError:
+            print('Communication task has been cancelled.')
+             
+            # Disconnect from the hand
+            if (client.is_connected):
+                await client.disconnect()
+
             
-            # Send the joint angles to the hand without response as it's faster
-            await client.write_gatt_char(dof_char, data)
-
-            # Yield
-            await asyncio.sleep(0.01)
 
 
 async def main():
@@ -340,7 +370,9 @@ async def main():
     ble_communication_task = asyncio.create_task(ble_communication(ble_tx_queue))
 
     # Run the tasks concurrently
-    
-    await asyncio.gather(hand_tracking_task, ble_communication_task, return_exceptions=True)
+    try:
+        await asyncio.gather(hand_tracking_task, ble_communication_task, return_exceptions=True)
+    except asyncio.exceptions.CancelledError:
+        print('Sub tasks have been cancelled. Shutting down.')
 
 asyncio.run(main())
