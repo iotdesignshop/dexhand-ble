@@ -25,10 +25,13 @@ The demonstration script uses the Google Mediapipe Hand Tracker to perform softw
 ### Firmware: Arduino on Nano RP2040 Connect Board
 The hardware build is based on the Arduino Nano RP2040 Connect board. This is an Arduino board based on the Raspberry Pi Pico MCU with additional wireless functions provided by a UBlox module. You can see full specs for this board on the Arduino website (https://docs.arduino.cc/hardware/nano-rp2040-connect). You can purchase the board direct from Arduino or from distributors such as DigiKey. Although this is not the cheapest Pi Pico board on the market, we felt that the security of the Arduino ecosystem and an officially supported board was well worth it for anyone building the hand. We may port the firmware to other boards in the future as well, and encourage the community to do so as well and contribute the results back to the project. 
 
-To compile the firmware, you will require Arduino IDE 2.x. Configuration of the Arduino environment and how to upload code to a board, etc is well covered in other tutorials, so we'll just list the basics here and the assumption is you can compile and flash the RP2040 Connect Board. The Getting Started Guide for the Nano RP2040 Connect is available here: https://docs.arduino.cc/software/ide-v1/tutorials/getting-started/cores/arduino-mbed_nano
+
 
 
 # How to Set Up and Build the Arduino Firmware
+
+## Ardunio IDE Set-Up
+To compile the firmware, you will require Arduino IDE 2.x. Configuration of the Arduino environment and how to upload code to a board, etc is well covered in other tutorials, so we'll just list the basics here and the assumption is you can compile and flash the RP2040 Connect Board. The Getting Started Guide for the Nano RP2040 Connect is available here: https://docs.arduino.cc/software/ide-v1/tutorials/getting-started/cores/arduino-mbed_nano
 
 ## Library Dependencies
 The following libraries must be installed via the Arduino Library Manager in the IDE:
