@@ -43,7 +43,7 @@ The following libraries must be installed via the Arduino Library Manager in the
 If you are not familiar with the process of installing libraries, you may wish to reference this guide: https://support.arduino.cc/hc/en-us/articles/5145457742236-Add-libraries-to-Arduino-IDE
 
 ## Compile and Upload
-Compile and flash your board with the Arduino project found in the dexhand-ble/Arduino/DexHand-RP2040-BLE folder. Once you have it running, you can launch the Python demo to connect to the Arduino via Bluetooth LE.
+Compile and flash your board with the Arduino project found in the ```dexhand-ble/Arduino/DexHand-RP2040-BLE``` folder. Once you have it running, you can launch the Python demo to connect to the Arduino via Bluetooth LE.
 
 
 # How to Set Up and Run the Python Demo
