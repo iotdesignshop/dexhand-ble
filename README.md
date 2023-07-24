@@ -48,6 +48,10 @@ Compile and flash your board with the Arduino project found in the ```dexhand-bl
 
 # How to Set Up and Run the Python Demo
 
+![Demo_Python](https://github.com/iotdesignshop/dexhand-ble/assets/2821763/a217bcc1-1ed0-468a-91ad-5ab948d457ff)
+
+
+
 The Python Demo should run on any PC, Mac, or Linux machine with Python 3.7 or higher. We recommend creating a virtual environment for running the script in order to keep dependencies in check.
 
 The quick guide below will help you get a Python Virtual Environment set up. A full explanation of Python Virtual Environments is available here if you run into trouble: https://docs.python.org/3/library/venv.html
