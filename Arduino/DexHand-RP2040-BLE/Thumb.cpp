@@ -16,7 +16,7 @@ Thumb::Thumb(ManagedServo& leftPitchServo, ManagedServo& rightPitchServo, Manage
     mYawRange[0] = -40;
     mYawRange[1] = 40;
     mFlexionRange[0] = 0;
-    mFlexionRange[1] = 120;
+    mFlexionRange[1] = 60;
     mRollRange[0] = 0;
     mRollRange[1] = 20;
     mYawBias = 40;
