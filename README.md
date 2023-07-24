@@ -85,5 +85,9 @@ To launch the demo script:
 (mp-env)$ python dexhand-ble.py
 ```
 
+## What Do the Debug Numbers Mean?
+
+The numbers shown at the top left of the screen are the **DOF Angles** corresponding to the fingers and thumb. From top to bottom, they are the pitch, yaw, and long flexion tendon angle. These are the values that are streamed to the firmware via Bluetooth LE. It can help to understand what exactly your DexHand is doing if you can see those angles in real time, so we leave them up on the screen.
+
 
 
