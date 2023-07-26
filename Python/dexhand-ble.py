@@ -244,15 +244,6 @@ UART_TX_CHAR_UUID = "6E400003-B5A3-F393-E0A9-E50E24DCCA9E"
 DOF_SERVICE_UUID = "1e16c1b4-1936-4f0e-ab62-5e0a702a4935"
 DOF_CHAR_UUID = "1e16c1b5-1936-4f0e-ab62-5e0a702a4935"
 
-
-# TIP: you can get this function and more from the ``more-itertools`` package.
-def sliced(data: bytes, n: int) -> Iterator[bytes]:
-    """
-    Slices *data* into chunks of size *n*. The last slice may be smaller than
-    *n*.
-    """
-    return takewhile(len, (data[i : i + n] for i in count(0, n)))
-
 # Main BLE communication task       
 async def ble_communication(tx_queue):
     """ This task handles communication with the DexHand over BLE."""
