@@ -25,10 +25,13 @@ The demonstration script uses the Google Mediapipe Hand Tracker to perform softw
 ### Firmware: Arduino on Nano RP2040 Connect Board
 The hardware build is based on the Arduino Nano RP2040 Connect board. This is an Arduino board based on the Raspberry Pi Pico MCU with additional wireless functions provided by a UBlox module. You can see full specs for this board on the Arduino website (https://docs.arduino.cc/hardware/nano-rp2040-connect). You can purchase the board direct from Arduino or from distributors such as DigiKey. Although this is not the cheapest Pi Pico board on the market, we felt that the security of the Arduino ecosystem and an officially supported board was well worth it for anyone building the hand. We may port the firmware to other boards in the future as well, and encourage the community to do so as well and contribute the results back to the project. 
 
-To compile the firmware, you will require Arduino IDE 2.x. Configuration of the Arduino environment and how to upload code to a board, etc is well covered in other tutorials, so we'll just list the basics here and the assumption is you can compile and flash the RP2040 Connect Board. The Getting Started Guide for the Nano RP2040 Connect is available here: https://docs.arduino.cc/software/ide-v1/tutorials/getting-started/cores/arduino-mbed_nano
+
 
 
 # How to Set Up and Build the Arduino Firmware
+
+## Ardunio IDE Set-Up
+To compile the firmware, you will require Arduino IDE 2.x. Configuration of the Arduino environment and how to upload code to a board, etc is well covered in other tutorials, so we'll just list the basics here and the assumption is you can compile and flash the RP2040 Connect Board. The Getting Started Guide for the Nano RP2040 Connect is available here: https://docs.arduino.cc/software/ide-v1/tutorials/getting-started/cores/arduino-mbed_nano
 
 ## Library Dependencies
 The following libraries must be installed via the Arduino Library Manager in the IDE:
@@ -39,10 +42,14 @@ The following libraries must be installed via the Arduino Library Manager in the
 
 If you are not familiar with the process of installing libraries, you may wish to reference this guide: https://support.arduino.cc/hc/en-us/articles/5145457742236-Add-libraries-to-Arduino-IDE
 
-## Bluetooth LE
-For simplicity, the device is set up to advertise the Nordic BLE UART Service (and to use this service for communications with the device). By default it is named "DexHand" as well, so you should be able to see the device with any BLE Scanner after you've successfully built and uploaded the Arduino firmware.
+## Compile and Upload
+Compile and flash your board with the Arduino project found in the ```dexhand-ble/Arduino/DexHand-RP2040-BLE``` folder. Once you have it running, you can launch the Python demo to connect to the Arduino via Bluetooth LE.
+
 
 # How to Set Up and Run the Python Demo
+
+![Demo_AdobeExpress-2](https://github.com/iotdesignshop/dexhand-ble/assets/2821763/eac379b5-f14b-4bde-b8e9-66fad7c3517d)
+
 
 The Python Demo should run on any PC, Mac, or Linux machine with Python 3.7 or higher. We recommend creating a virtual environment for running the script in order to keep dependencies in check.
 
@@ -77,6 +84,11 @@ To launch the demo script:
 ```
 (mp-env)$ python dexhand-ble.py
 ```
+
+## What Do the Debug Numbers Mean?
+<img width="800" alt="Debug-Numbers" src="https://github.com/iotdesignshop/dexhand-ble/assets/2821763/e61605aa-c3ab-4246-8bf1-f8a07437e5b0">
+
+The numbers shown at the top left of the screen are the **DOF Angles** corresponding to the fingers and thumb. From top to bottom, they are the pitch, yaw, and long flexion tendon angle. These are the values that are streamed to the firmware via Bluetooth LE. It can help to understand what exactly your DexHand is doing if you can see those angles in real time, so we leave them up on the screen.
 
 
 
