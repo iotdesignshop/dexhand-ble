@@ -263,6 +263,8 @@ void setup() {
     while (1);
   }
 
+  BLE.setConnectionInterval(6, 10); // Ask for a fast connection interval: 7.5 ms minimum, 12.5s maximum
+
   heartbeatTimer.start();  // Start heartbeat timer
   connectionTimeout.start(); // Start timeout
 
