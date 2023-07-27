@@ -32,35 +32,35 @@ class Thumb {
         void update();          // Called from the main loop to update the thumb servos
 
         // Positioning
-        inline void setPosition(uint8_t pitch, uint8_t yaw, uint8_t flexion) { setPitch(pitch); setYaw(yaw); setFlexion(flexion);}
-        void setPitch(uint8_t pitch);
-        void setYaw(int8_t yaw);
-        void setFlexion(uint8_t flexion);
-        void setRoll(uint8_t roll);
+        inline void setPosition(int16_t pitch, int16_t yaw, int16_t flexion) { setPitch(pitch); setYaw(yaw); setFlexion(flexion);}
+        void setPitch(int16_t pitch);
+        void setYaw(int16_t yaw);
+        void setFlexion(int16_t flexion);
+        void setRoll(int16_t roll);
         
-        inline uint8_t getPitch() const { return mPitchTarget;}
-        inline int8_t getYaw() const { return mYawTarget;}
-        inline uint8_t getFlexion() const { return mFlexionTarget;}
+        inline int16_t getPitch() const { return mPitchTarget;}
+        inline int16_t getYaw() const { return mYawTarget;}
+        inline int16_t getFlexion() const { return mFlexionTarget;}
 
         // Ranges
-        inline void setPitchRange(uint8_t min, uint8_t max) { mPitchRange[0] = min; mPitchRange[1] = max; }
-        inline void setYawRange(int8_t min, int8_t max) { mYawRange[0] = min; mYawRange[1] = max; }
-        inline void setYawBias(uint8_t bias) { mYawBias = bias; }
-        inline void setFlexionRange(uint8_t min, uint8_t max) { mFlexionRange[0] = min; mFlexionRange[1] = max; }
-        inline void setRollRange(uint8_t min, uint8_t max) { mRollRange[0] = min; mRollRange[1] = max; }    
+        inline void setPitchRange(int16_t min, int16_t max) { mPitchRange[0] = min; mPitchRange[1] = max; }
+        inline void setYawRange(int16_t min, int16_t max) { mYawRange[0] = min; mYawRange[1] = max; }
+        inline void setYawBias(int16_t bias) { mYawBias = bias; }
+        inline void setFlexionRange(int16_t min, int16_t max) { mFlexionRange[0] = min; mFlexionRange[1] = max; }
+        inline void setRollRange(int16_t min, int16_t max) { mRollRange[0] = min; mRollRange[1] = max; }    
 
-        inline uint8_t getPitchMin() const { return mPitchRange[0]; }
-        inline uint8_t getPitchMax() const { return mPitchRange[1]; }
+        inline int16_t getPitchMin() const { return mPitchRange[0]; }
+        inline int16_t getPitchMax() const { return mPitchRange[1]; }
         
-        inline int8_t getYawMin() const { return mYawRange[0]; }
-        inline int8_t getYawMax() const { return mYawRange[1]; }
-        inline uint8_t getYawBias() const { return mYawBias; }
+        inline int16_t getYawMin() const { return mYawRange[0]; }
+        inline int16_t getYawMax() const { return mYawRange[1]; }
+        inline int16_t getYawBias() const { return mYawBias; }
         
-        inline uint8_t getFlexionMin() const { return mFlexionRange[0]; }
-        inline uint8_t getFlexionMax() const { return mFlexionRange[1]; }
+        inline int16_t getFlexionMin() const { return mFlexionRange[0]; }
+        inline int16_t getFlexionMax() const { return mFlexionRange[1]; }
 
-        inline uint8_t getRollMin() const { return mRollRange[0]; }
-        inline uint8_t getRollMax() const { return mRollRange[1]; }
+        inline int16_t getRollMin() const { return mRollRange[0]; }
+        inline int16_t getRollMax() const { return mRollRange[1]; }
 
 
 
@@ -71,16 +71,16 @@ class Thumb {
         ManagedServo& mFlexionServo;
         ManagedServo& mRollServo;
 
-        uint8_t mPitchTarget;
-        int8_t mYawTarget;
-        uint8_t mFlexionTarget;
-        uint8_t mRollTarget;
+        int16_t mPitchTarget;
+        int16_t mYawTarget;
+        int16_t mFlexionTarget;
+        int16_t mRollTarget;
 
-        uint8_t mPitchRange[2];
-        int8_t mYawRange[2];
-        uint8_t mFlexionRange[2];
-        uint8_t mRollRange[2];
-        uint8_t mYawBias;
+        int16_t mPitchRange[2];
+        int16_t mYawRange[2];
+        int16_t mFlexionRange[2];
+        int16_t mRollRange[2];
+        int16_t mYawBias;
 
         void updatePitchServos();
 };

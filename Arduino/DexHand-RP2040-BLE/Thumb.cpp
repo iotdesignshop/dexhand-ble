@@ -64,19 +64,19 @@ void Thumb::update() {
 
 
 
-void Thumb::setFlexion(uint8_t flexion) {
+void Thumb::setFlexion(int16_t flexion) {
     mFlexionTarget = CLAMP(flexion, getFlexionMin(), getFlexionMax());
 }
 
-void Thumb::setPitch(uint8_t pitch) {
+void Thumb::setPitch(int16_t pitch) {
     mPitchTarget = CLAMP(pitch, getPitchMin(), getPitchMax());
 }
 
-void Thumb::setYaw(int8_t yaw) {
+void Thumb::setYaw(int16_t yaw) {
     mYawTarget = CLAMP(yaw, getYawMin(), getYawMax());
 }
 
-void Thumb::setRoll(uint8_t roll) {
+void Thumb::setRoll(int16_t roll) {
     mRollTarget = CLAMP(roll, getRollMin(), getRollMax());
 }
 

@@ -69,15 +69,15 @@ void Finger::update() {
 
 
 
-void Finger::setFlexion(uint8_t flexion) {
+void Finger::setFlexion(int16_t flexion) {
     mFlexionTarget = CLAMP(flexion, getFlexionMin(), getFlexionMax());
 }
 
-void Finger::setPitch(uint8_t pitch) {
+void Finger::setPitch(int16_t pitch) {
     mPitchTarget = CLAMP(pitch, getPitchMin(), getPitchMax());
 }
 
-void Finger::setYaw(int8_t yaw) {
+void Finger::setYaw(int16_t yaw) {
     mYawTarget = CLAMP(yaw, getYawMin(), getYawMax());
 }
 
@@ -130,9 +130,12 @@ void Finger::updatePitchServos()
     // If flexion is > 50%, mix in additional pitch
     if (normalizedFlexion > 0.5f) {
         int flexionGain = static_cast<int32_t>((normalizedFlexion - 0.5f) * 30.0f);
+        
+        #ifdef DEBUG
         Serial.print("FlexionGain: ");
         Serial.println(flexionGain);
-
+        #endif
+        
         leftPitch += flexionGain;
         rightPitch += flexionGain;
     }
