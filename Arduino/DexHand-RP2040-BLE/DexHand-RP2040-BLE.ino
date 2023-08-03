@@ -39,14 +39,14 @@ ManagedServo managedServos[NUM_SERVOS] =
   // Servo GPIO Pin, Min, Max, Default, Inverted
   ManagedServo(2, 20, 130, 20, false),  // Index Lower 0
   ManagedServo(3, 20, 130, 20, false),  // Index Upper 1
-  ManagedServo(4, 50, 140, 50, false),  // Middle Lower 2
-  ManagedServo(5, 50, 150, 50, false),  // Middle Upper 3
+  ManagedServo(4, 30, 140, 30, false),  // Middle Lower 2
+  ManagedServo(5, 30, 150, 30, false),  // Middle Upper 3
   ManagedServo(7, 20, 140, 20, true),   // Ring Lower 4
   ManagedServo(6, 20, 140, 20, true),   // Ring Upper  5
   ManagedServo(9, 20, 140, 20, true),   // Pinky Lower 6
   ManagedServo(8, 20, 150, 20, true),   // Pinky Upper 7
   ManagedServo(10, 50, 120, 50, false),  // Index Tip 8
-  ManagedServo(11, 50, 120, 50, false), // Middle Tip 9
+  ManagedServo(11, 30, 120, 50, false), // Middle Tip 9
   ManagedServo(12, 50, 130, 50, true),  // Ring Tip 10
   ManagedServo(13, 50, 110, 50, true),  // Pinky Tip 11
   ManagedServo(14, 20, 130, 20, true),  // Thumb Tip 12

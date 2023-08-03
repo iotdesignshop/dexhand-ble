@@ -108,7 +108,7 @@ def analyze_hand_landmarks(hand_landmarks):
     # First finger, fore or index
     # Angles calculated correspond to knuckle flex, knuckle yaw and long tendon length for all fingers,
     joint_angles[0] = 180-angle_between(joint_xyz[0], joint_xyz[5], joint_xyz[6])
-    joint_angles[1] = 90-angle_between(joint_xyz[9], joint_xyz[5], joint_xyz[6])-10     # Requires a little extra offset of 10 deg
+    joint_angles[1] = 90-angle_between(joint_xyz[9], joint_xyz[5], joint_xyz[6])     # Requires a little extra offset of 10 deg
     joint_angles[2] = 180-angle_between(joint_xyz[5], joint_xyz[6], joint_xyz[7])
     #print(int(joint_angles[0]), int(joint_angles[1]), int(joint_angles[2]))
 
@@ -220,7 +220,7 @@ async def hand_tracking(tx_queue):
                 cv2.imshow('DexHand BLE', annotated_image)
                 
                 # Yield
-                await asyncio.sleep(0)
+                await asyncio.sleep(0.01)
 
                 # Check for escape key
                 if cv2.waitKey(5) & 0xFF == 27:
@@ -287,7 +287,13 @@ async def ble_communication(tx_queue):
         else:
             print("Unknown message from hand received:", data)
 
-    
+    def update_values(previous_values, current_values, threshold):
+        # Update the values only if they have changed by more than the threshold
+        mask = np.abs(current_values - previous_values) > threshold
+        updated_values = previous_values.copy()  # Create a copy to store the updated values
+        updated_values[mask] = current_values[mask]
+        return updated_values
+
     async with BleakClient(device, disconnected_callback=handle_disconnect) as client:
         await client.start_notify(UART_TX_CHAR_UUID, handle_rx)
 
@@ -316,6 +322,7 @@ async def ble_communication(tx_queue):
         asyncio.create_task(send_heartbeat())
 
         try:
+            previous_angles = await tx_queue.get()
             while True:
 
                 # Throw away any surplus queued joint angles - we only want to transmit the latest.
@@ -325,7 +332,13 @@ async def ble_communication(tx_queue):
                     tx_queue.get_nowait()
 
                 # Grab the latest set of angles
-                joint_angles = await tx_queue.get()
+                new_angles = await tx_queue.get()
+
+                # Threshold the values to reduce noise when hand is at rest
+                # Movement of more than 5 degrees is required to move the fingers
+                joint_angles = update_values(previous_angles, new_angles, 5)
+                previous_angles = joint_angles
+                
 
                 # Encode the joint angles into 8-bit integers. We scale everything to 0-255
                 # to represent -180 to 180 degrees with 128 as the zero point.
