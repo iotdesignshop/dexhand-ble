@@ -50,9 +50,9 @@ ManagedServo managedServos[NUM_SERVOS] =
   ManagedServo(12, 50, 130, 50, true),  // Ring Tip 10
   ManagedServo(13, 50, 110, 50, true),  // Pinky Tip 11
   ManagedServo(14, 20, 130, 20, true),  // Thumb Tip 12
-  ManagedServo(15, 0, 130, 0, false),  // Thumb Right 13
-  ManagedServo(16, 0, 150, 10, false),  // Thumb Left 14
-  ManagedServo(17, 80, 110, 90, false),  // Thumb Rotate 15
+  ManagedServo(15, 20, 170, 20, false),  // Thumb Right 13
+  ManagedServo(16, 20, 150, 20, false),  // Thumb Left 14
+  ManagedServo(17, 20, 95, 20, false),  // Thumb Rotate 15
   ManagedServo(18, 0, 180, 90, false),  // Wrist Left 16
   ManagedServo(19, 0, 180, 90, false)   // Wrist Right 17
 };
@@ -290,8 +290,7 @@ void setup() {
 }
 
 
-void processCommand(String cmd)
-{
+void processCommand(String cmd) {
   // Basic command parser for servo commands - nothing special, but it works
   // Commands are of the form: "S:1:90" where S is the command, 1 is the servo index, and 90 is the position
 
@@ -305,21 +304,22 @@ void processCommand(String cmd)
   int index = 0;
   int position = 0;
 
-  if (colonPos != -1)
-  {
+  if (colonPos != -1) {
     cmdType = cmd.substring(0, colonPos);
     cmd = cmd.substring(colonPos + 1);
     colonPos = cmd.indexOf(':');
     servoIndex = cmd.substring(0, colonPos);
-    servoPosition = cmd.substring(colonPos + 1);
+    
+    if (colonPos != -1) {
+      servoPosition = cmd.substring(colonPos + 1);
+      position = servoPosition.toInt();
+    }
 
     // Convert to integers
     index = servoIndex.toInt();
-    position = servoPosition.toInt();
-
+    
   }
-  else
-  {
+  else {
     // Single word command
     cmdType = cmd;
     cmdType.trim();
@@ -338,8 +338,7 @@ void processCommand(String cmd)
   Serial.println(position);
 
   // Set the servo position
-  if (cmdType == "set")
-  {
+  if (cmdType == "set") {
     Serial.print("Setting Servo ");
     Serial.print(index);
     Serial.print(" to ");
@@ -347,8 +346,7 @@ void processCommand(String cmd)
 
     managedServos[index].setServoPosition(position);
   }
-  if (cmdType == "max")
-  {
+  if (cmdType == "max") {
     if (position != 0)
     {
       managedServos[index].setMaxPosition(position);
@@ -359,8 +357,7 @@ void processCommand(String cmd)
 
     managedServos[index].moveToMaxPosition();
   }
-  if (cmdType == "min")
-  {
+  if (cmdType == "min") {
     if (position != 0)
     {
       managedServos[index].setMinPosition(position);
@@ -371,32 +368,25 @@ void processCommand(String cmd)
 
     managedServos[index].moveToMinPosition();
   }
-  if (cmdType == "one")
-  {
+  if (cmdType == "one") {
     setOnePose();
   }
-  if (cmdType == "two")
-  {
+  if (cmdType == "two") {
     setTwoPose();
   }
-  if (cmdType == "three")
-  {
+  if (cmdType == "three") {
     setThreePose();
   }
-  if (cmdType == "four")
-  {
+  if (cmdType == "four") {
     setFourPose();
   }
-  if (cmdType == "default")
-  {
+  if (cmdType == "default") {
     setDefaultPose();
   }
-  if (cmdType == "count")
-  {
+  if (cmdType == "count") {
     count();
   }
-  if (cmdType == "hb")
-  {
+  if (cmdType == "hb") {
     connectionTimeout.resetTimerValue();
     Serial.println("Heartbeat received");
   }
@@ -405,11 +395,9 @@ void processCommand(String cmd)
 
 // This method is called to process all of the higher level objects (Finger,Thumb)
 // and update the servo positions based on the current hand angles.
-void updateHand()
-{
+void updateHand() {
   // Update fingers
-  for (int index = 0; index < NUM_FINGERS; index++)
-  {
+  for (int index = 0; index < NUM_FINGERS; index++) {
     fingers[index].update();
   }
   // Update thumb
@@ -511,8 +499,7 @@ void dofHandler(BLEDevice central, BLECharacteristic characteristic) {
   const uint8_t* data = characteristic.value();
   int16_t unpackedAngles[DOF_COUNT];
 
-  for (int i = 0; i < DOF_COUNT; i++)
-  {
+  for (int i = 0; i < DOF_COUNT; i++) {
     float angle = (data[i] - 128)*360.0/256.0;
     unpackedAngles[i] = static_cast<int16_t>(angle);
   }
@@ -531,8 +518,7 @@ void dofHandler(BLEDevice central, BLECharacteristic characteristic) {
   // Now, these angles can be sent to our controllers to adjust the hand poses
 
   // Fingers first
-  for (int i = 0; i < NUM_FINGERS; i++)
-  {
+  for (int i = 0; i < NUM_FINGERS; i++) {
     fingers[i].setPitch(unpackedAngles[i*3]);
     fingers[i].setYaw(unpackedAngles[i*3+1]);
     fingers[i].setFlexion(unpackedAngles[i*3+2]);
