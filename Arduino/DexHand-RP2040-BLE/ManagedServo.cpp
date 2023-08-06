@@ -1,4 +1,4 @@
-#include "RP2040_ISR_Servo.h"
+#include "RP2040_ISR_Servo/RP2040_ISR_Servo.h"
 #include "ManagedServo.h"
 
 // Published values for ES3352 servos; adjust if you are using different servos
@@ -23,6 +23,11 @@ void ManagedServo::setupServo()
     // Set default position
     if (mISRServoIndex != -1) {
         setServoPosition(mDefaultPosition);
+        
+        Serial.print("Servo pin: ");
+        Serial.print(mServoPin);
+        Serial.print(" Assigned to ISR Slot: ");
+        Serial.println(mISRServoIndex);
     }
     else
     {

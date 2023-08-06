@@ -53,8 +53,8 @@ ManagedServo managedServos[NUM_SERVOS] =
   ManagedServo(15, 20, 160, 20, false),  // Thumb Right 13
   ManagedServo(16, 20, 150, 20, false),  // Thumb Left 14
   ManagedServo(17, 20, 95, 20, false),  // Thumb Rotate 15
-  ManagedServo(18, 0, 180, 90, false),  // Wrist Left 16
-  ManagedServo(19, 0, 180, 90, false)   // Wrist Right 17
+  ManagedServo(0, 20, 160, 80, false),  // Wrist Left 16
+  ManagedServo(1, 20, 160, 80, false)   // Wrist Right 17
 };
 
 #define NUM_FINGERS 4
@@ -269,12 +269,14 @@ void maxPinky() {
 
 void setup() {
   Serial.begin(9600);    // initialize serial communication
+  delay(2000);
 
   // ----- Servo Setup -----
   for (int index = 0; index < NUM_SERVOS; index++)
   {
     pinMode(managedServos[index].getServoPin(), OUTPUT);
     digitalWrite(managedServos[index].getServoPin(), LOW);
+    Serial.println("Setting up servo");
     managedServos[index].setupServo();
   }
 
