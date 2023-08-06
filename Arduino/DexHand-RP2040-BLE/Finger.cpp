@@ -12,11 +12,11 @@ Finger::Finger(ManagedServo& leftPitchServo, ManagedServo& rightPitchServo, Mana
     // Default ranges to something sane, but they can be overriden by a tuning
     // routine or by the user if desired.
     mPitchRange[0] = 0;
-    mPitchRange[1] = 45;
+    mPitchRange[1] = 40;
     mYawRange[0] = -20;
     mYawRange[1] = 20;
     mFlexionRange[0] = 0;
-    mFlexionRange[1] = 120;
+    mFlexionRange[1] = 100;
     mYawBias = 60;
 
     // Targets to nominal
@@ -95,8 +95,8 @@ void Finger::setYaw(int16_t yaw) {
 // at by tuning as opposed to a calculated value. This could potentially be calculated
 // in a more accurate way down the road.
 
-void Finger::updatePitchServos()
-{
+void Finger::updatePitchServos() {
+  
     float normalizedFlexion = normalizedValue(getFlexion(), mFlexionRange[0], mFlexionRange[1]);    
     
     // Normalize the yaw

@@ -11,12 +11,12 @@ Thumb::Thumb(ManagedServo& leftPitchServo, ManagedServo& rightPitchServo, Manage
 : mLeftPitchServo(leftPitchServo), mRightPitchServo(rightPitchServo), mFlexionServo(flexionServo), mRollServo(rollServo) {
     // Default ranges to something sane, but they can be overriden by a tuning
     // routine or by the user if desired.
-    mPitchRange[0] = 0;
-    mPitchRange[1] = 90;
-    mYawRange[0] = -40;
-    mYawRange[1] = 40;
+    mPitchRange[0] = 30;
+    mPitchRange[1] = 60;
+    mYawRange[0] = 0;
+    mYawRange[1] = 45;
     mFlexionRange[0] = 0;
-    mFlexionRange[1] = 60;
+    mFlexionRange[1] = 45;
     mRollRange[0] = 0;
     mRollRange[1] = 20;
     mYawBias = 40;
@@ -80,48 +80,56 @@ void Thumb::setRoll(int16_t roll) {
     mRollTarget = CLAMP(roll, getRollMin(), getRollMax());
 }
 
-// The yaw is computed and applied to a bias of the target positions on the left
-// and right pitch servos. This pulls the Thumb to the left or right based
-// on the value. Note - The bias value is kind of empiracal and something arrived
-// at by tuning as opposed to a calculated value. This could potentially be calculated
-// in a more accurate way down the road.
 
-void Thumb::updatePitchServos()
-{
-    // Normalize the yaw
-    float normalizedYaw = normalizedValue(mYawTarget, mYawRange[0], mYawRange[1])-0.5f;
-    
-    // Scale the yaw based on the flexion angle, and apply the bias
-    float scaledYaw = normalizedYaw * mYawBias;
-    
-    #ifdef DEBUG   // Useful debug printing for tuning
-    Serial.print("NFlex: ");
-    Serial.print(normalizedFlexion);
-    Serial.print(" YawTgt: ");
-    Serial.print(mYawTarget);
-    Serial.print(" NYaw: ");
-    Serial.print(normalizedYaw);
-    Serial.print("SYaw: ");
-    Serial.println(scaledYaw);
-    #endif
+/* This function is a little bit tricky and worthy of explanation:
 
-    // Compute the pitch on the servos
-    int32_t leftPitch = mapInteger(mPitchTarget, mPitchRange[0], mPitchRange[1], 
-        mLeftPitchServo.getMinPosition(), mLeftPitchServo.getMaxPosition());
+  The Yaw angle coming through from the MediaPipe tracker has a range of approximately 45 degrees.
+  At approximately 30 degrees, the thumb is roughly parallel with the index finger. 
+  Beyond 30 degrees, it actually crosses over to the palm. So, we approximate this motion
+  by adding the angle to the upper thumb servo (right pitch servo) up to 30 degrees and then
+  subtract it off quickly beyond that to allow the thumb to extend back out past the fingers.
 
-    int32_t rightPitch = mapInteger(mPitchTarget, mPitchRange[0], mPitchRange[1],
-        mRightPitchServo.getMinPosition(), mRightPitchServo.getMaxPosition());
+  This is not really a "mathematically correct" solution per se, but gives the intended output
+  without very difficult math, and it approximates the fidelity of the data that MediaPipe Hand
+  Tracker returns at an appropriate level on the hardware for now.
+*/
 
-    // Mix in the yaw
-    leftPitch = static_cast<int32_t>(leftPitch - scaledYaw);
-    rightPitch = static_cast<int32_t>(rightPitch + scaledYaw);
+#define YAW_THRESHOLD 30
+void Thumb::updatePitchServos() {
 
-    // Clamp
-    leftPitch = CLAMP(leftPitch, mLeftPitchServo.getMinPosition(), mLeftPitchServo.getMaxPosition());
-    rightPitch = CLAMP(rightPitch, mRightPitchServo.getMinPosition(), mRightPitchServo.getMaxPosition());
+  // If thumb is in yaw range before crossing over the palm, perform regular calculation and apply to right servo
+  if (mYawTarget < YAW_THRESHOLD) {
+    int32_t clamped = CLAMP(mYawTarget, mYawRange[0], YAW_THRESHOLD);
+    int32_t rightPitch = mapInteger(clamped, mYawRange[0], YAW_THRESHOLD,
+      mRightPitchServo.getMinPosition(), mRightPitchServo.getMaxPosition());
 
-    // Send to servos
-    mLeftPitchServo.setServoPosition(static_cast<uint8_t>(leftPitch));
     mRightPitchServo.setServoPosition(static_cast<uint8_t>(rightPitch));
+  }
+  else {
+    // Thumb is crossing over face of palm - subtract off 2X the overage amount so that
+    // we mix the right pitch servo angle out while increasing the left servo.
+    int32_t yawOver = mYawTarget-YAW_THRESHOLD;
+
+    // Subtract overage from right servo
+    int32_t clamped = CLAMP(YAW_THRESHOLD-2*yawOver, mYawRange[0], YAW_THRESHOLD);
+    int32_t rightPitch = mapInteger(clamped, mYawRange[0], YAW_THRESHOLD,
+      mRightPitchServo.getMinPosition(), mRightPitchServo.getMaxPosition());
+
+    mRightPitchServo.setServoPosition(static_cast<uint8_t>(rightPitch));
+
+    #ifdef DEBUG
+    Serial.print("Yaw over:");
+    Serial.print(yawOver);
+    Serial.print(" Adj rt pitch:");
+    Serial.print(clamped);
+    #endif
+  }
+
+  // Apply pitch to left servo
+  int32_t leftPitch = mapInteger(mPitchTarget, mPitchRange[0], mPitchRange[1],
+      mLeftPitchServo.getMinPosition(), mLeftPitchServo.getMaxPosition());
+  
+  mLeftPitchServo.setServoPosition(static_cast<uint8_t>(leftPitch));
+  
 
 }

@@ -40,17 +40,17 @@ ManagedServo managedServos[NUM_SERVOS] =
   ManagedServo(2, 20, 130, 20, false),  // Index Lower 0
   ManagedServo(3, 20, 130, 20, false),  // Index Upper 1
   ManagedServo(4, 30, 140, 30, false),  // Middle Lower 2
-  ManagedServo(5, 30, 150, 30, false),  // Middle Upper 3
+  ManagedServo(5, 30, 140, 30, false),  // Middle Upper 3
   ManagedServo(7, 20, 140, 20, true),   // Ring Lower 4
   ManagedServo(6, 20, 140, 20, true),   // Ring Upper  5
   ManagedServo(9, 20, 140, 20, true),   // Pinky Lower 6
   ManagedServo(8, 20, 150, 20, true),   // Pinky Upper 7
-  ManagedServo(10, 50, 120, 50, false),  // Index Tip 8
-  ManagedServo(11, 30, 120, 50, false), // Middle Tip 9
-  ManagedServo(12, 50, 130, 50, true),  // Ring Tip 10
-  ManagedServo(13, 50, 110, 50, true),  // Pinky Tip 11
-  ManagedServo(14, 20, 130, 20, true),  // Thumb Tip 12
-  ManagedServo(15, 20, 170, 20, false),  // Thumb Right 13
+  ManagedServo(10, 50, 100, 50, false),  // Index Tip 8
+  ManagedServo(11, 30, 90, 50, false), // Middle Tip 9
+  ManagedServo(12, 50, 120, 50, true),  // Ring Tip 10
+  ManagedServo(13, 70, 110, 70, true),  // Pinky Tip 11
+  ManagedServo(14, 20, 120, 20, true),  // Thumb Tip 12
+  ManagedServo(15, 20, 160, 20, false),  // Thumb Right 13
   ManagedServo(16, 20, 150, 20, false),  // Thumb Left 14
   ManagedServo(17, 20, 95, 20, false),  // Thumb Rotate 15
   ManagedServo(18, 0, 180, 90, false),  // Wrist Left 16
@@ -108,8 +108,8 @@ void setDefaultPose() {
   }
 }
 
-void setZeroPose()
-{
+void setZeroPose() {
+  
   setDefaultPose();
   
   // Move all thumb joints to min
@@ -132,8 +132,8 @@ void setZeroPose()
 
 }
 
-void setOnePose()
-{
+void setOnePose() {
+
   setDefaultPose();
   
   // Move all thumb joints to min
@@ -155,8 +155,8 @@ void setOnePose()
 
 }
 
-void setTwoPose()
-{
+void setTwoPose() {
+
   setDefaultPose();
 
   // Move all thumb joints to min
@@ -178,8 +178,8 @@ void setTwoPose()
   }
 }
 
-void setThreePose()
-{
+void setThreePose() {
+
   setDefaultPose();
 
   // Move all thumb joints to min
@@ -200,9 +200,8 @@ void setThreePose()
   }
 }
 
-void setFourPose()
-{
-  
+void setFourPose() {
+
   setDefaultPose();
 
   // Move all thumb joints to min
@@ -215,8 +214,7 @@ void setFourPose()
 
 
 
-void count()
-{
+void count() {
   setZeroPose();
   delay(1000);
   setOnePose();
@@ -241,6 +239,30 @@ void count()
   delay(1000);
   setDefaultPose();
   
+}
+
+void maxIndex() {
+  managedServos[SERVO_INDEX_LOWER].moveToMaxPosition();
+  managedServos[SERVO_INDEX_UPPER].moveToMaxPosition();
+  managedServos[SERVO_INDEX_TIP].moveToMaxPosition();
+}
+
+void maxMiddle() {
+  managedServos[SERVO_MIDDLE_LOWER].moveToMaxPosition();
+  managedServos[SERVO_MIDDLE_UPPER].moveToMaxPosition();
+  managedServos[SERVO_MIDDLE_TIP].moveToMaxPosition();
+}
+
+void maxRing() {
+  managedServos[SERVO_RING_LOWER].moveToMaxPosition();
+  managedServos[SERVO_RING_UPPER].moveToMaxPosition();
+  managedServos[SERVO_RING_TIP].moveToMaxPosition();
+}
+
+void maxPinky() {
+  managedServos[SERVO_PINKY_LOWER].moveToMaxPosition();
+  managedServos[SERVO_PINKY_UPPER].moveToMaxPosition();
+  managedServos[SERVO_PINKY_TIP].moveToMaxPosition();
 }
 
 
@@ -367,6 +389,29 @@ void processCommand(String cmd) {
     Serial.print(" to min");
 
     managedServos[index].moveToMinPosition();
+  }
+  if (cmdType == "fingermax") {
+    Serial.print("Setting finger ");
+    Serial.print(index);
+    Serial.print(" to max");
+
+    switch (index)
+    {
+      case 0:
+        maxIndex();
+        break;
+      case 1:
+        maxMiddle();
+        break;
+      case 2:
+        maxRing();
+        break;
+      case 3:
+        maxPinky();
+        break;
+      default:
+        break;
+    }
   }
   if (cmdType == "one") {
     setOnePose();
