@@ -80,6 +80,16 @@ void Thumb::setRoll(int16_t roll) {
     mRollTarget = CLAMP(roll, getRollMin(), getRollMax());
 }
 
+void Thumb::setMaxPosition()
+{
+    setPosition(getPitchMax(), getYawMax(), getFlexionMax());
+}
+
+void Thumb::setMinPosition()
+{
+    setPosition(getPitchMin(), getYawMin(), getFlexionMin());
+}
+
 
 /* This function is a little bit tricky and worthy of explanation:
 

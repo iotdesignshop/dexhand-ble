@@ -23,11 +23,6 @@ void ManagedServo::setupServo()
     // Set default position
     if (mISRServoIndex != -1) {
         setServoPosition(mDefaultPosition);
-        
-        Serial.print("Servo pin: ");
-        Serial.print(mServoPin);
-        Serial.print(" Assigned to ISR Slot: ");
-        Serial.println(mISRServoIndex);
     }
     else
     {

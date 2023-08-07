@@ -4,6 +4,7 @@
 #include "ManagedServo.h"
 #include "Finger.h"
 #include "Thumb.h"
+#include "Wrist.h"
 
 
 
@@ -66,7 +67,7 @@ Finger fingers[NUM_FINGERS] = {
 };
 
 Thumb thumb(managedServos[SERVO_THUMB_LEFT], managedServos[SERVO_THUMB_RIGHT], managedServos[SERVO_THUMB_TIP], managedServos[SERVO_THUMB_ROTATE]);
-
+Wrist wrist(managedServos[SERVO_WRIST_L], managedServos[SERVO_WRIST_R]);
 
 
 
@@ -212,7 +213,23 @@ void setFourPose() {
 
 }
 
-
+void wave()
+{
+  setDefaultPose();
+  for (int cycle = 0; cycle < 5; ++cycle) {
+    for (int yaw = wrist.getYawMin(); yaw <= wrist.getYawMax(); yaw ++) {
+      wrist.setYaw(yaw);
+      wrist.update();
+      delay(5);
+    }
+    for (int yaw = wrist.getYawMax(); yaw >= wrist.getYawMin(); yaw --) {
+      wrist.setYaw(yaw);
+      wrist.update();
+      delay(5);
+    }
+  }
+  setDefaultPose();
+}
 
 void count() {
   setZeroPose();
@@ -241,30 +258,6 @@ void count() {
   
 }
 
-void maxIndex() {
-  managedServos[SERVO_INDEX_LOWER].moveToMaxPosition();
-  managedServos[SERVO_INDEX_UPPER].moveToMaxPosition();
-  managedServos[SERVO_INDEX_TIP].moveToMaxPosition();
-}
-
-void maxMiddle() {
-  managedServos[SERVO_MIDDLE_LOWER].moveToMaxPosition();
-  managedServos[SERVO_MIDDLE_UPPER].moveToMaxPosition();
-  managedServos[SERVO_MIDDLE_TIP].moveToMaxPosition();
-}
-
-void maxRing() {
-  managedServos[SERVO_RING_LOWER].moveToMaxPosition();
-  managedServos[SERVO_RING_UPPER].moveToMaxPosition();
-  managedServos[SERVO_RING_TIP].moveToMaxPosition();
-}
-
-void maxPinky() {
-  managedServos[SERVO_PINKY_LOWER].moveToMaxPosition();
-  managedServos[SERVO_PINKY_UPPER].moveToMaxPosition();
-  managedServos[SERVO_PINKY_TIP].moveToMaxPosition();
-}
-
 
 
 void setup() {
@@ -274,9 +267,6 @@ void setup() {
   // ----- Servo Setup -----
   for (int index = 0; index < NUM_SERVOS; index++)
   {
-    pinMode(managedServos[index].getServoPin(), OUTPUT);
-    digitalWrite(managedServos[index].getServoPin(), LOW);
-    Serial.println("Setting up servo");
     managedServos[index].setupServo();
   }
 
@@ -327,7 +317,7 @@ void processCommand(String cmd) {
   String servoPosition;
   int index = 0;
   int position = 0;
-
+  
   if (colonPos != -1) {
     cmdType = cmd.substring(0, colonPos);
     cmd = cmd.substring(colonPos + 1);
@@ -350,10 +340,6 @@ void processCommand(String cmd) {
   }
 
   
-  // Clamp servo position
-  if (position < 0) position = 0;
-  if (position > 180) position = 180;
-
   Serial.print("CMD:");
   Serial.print(cmdType);
   Serial.print(":");
@@ -393,26 +379,41 @@ void processCommand(String cmd) {
     managedServos[index].moveToMinPosition();
   }
   if (cmdType == "fingermax") {
-    Serial.print("Setting finger ");
-    Serial.print(index);
-    Serial.print(" to max");
 
-    switch (index)
-    {
-      case 0:
-        maxIndex();
-        break;
-      case 1:
-        maxMiddle();
-        break;
-      case 2:
-        maxRing();
-        break;
-      case 3:
-        maxPinky();
-        break;
-      default:
-        break;
+    if (index < NUM_FINGERS) {
+      fingers[index].setMaxPosition();
+      fingers[index].update();
+    
+      Serial.print("Setting finger ");
+      Serial.print(index);
+      Serial.print(" to max");
+    }
+  }
+  if (cmdType == "fingermin") {
+
+    if (index < NUM_FINGERS) {
+      fingers[index].setMinPosition();
+      fingers[index].update();
+    
+      Serial.print("Setting finger ");
+      Serial.print(index);
+      Serial.print(" to min");
+    }
+  }
+  if (cmdType == "wrist") {
+    if (servoIndex == "pitch") {
+      wrist.setPitch(position);
+      wrist.update();
+
+      Serial.print("Setting wrist pitch to ");
+      Serial.println(position);
+    }
+    if (servoIndex == "yaw") {
+      wrist.setYaw(position);
+      wrist.update();
+
+      Serial.print("Setting wrist yaw to ");
+      Serial.println(position);
     }
   }
   if (cmdType == "one") {
@@ -433,6 +434,9 @@ void processCommand(String cmd) {
   if (cmdType == "count") {
     count();
   }
+  if (cmdType == "wave") {
+    wave();
+  }
   if (cmdType == "hb") {
     connectionTimeout.resetTimerValue();
     Serial.println("Heartbeat received");
@@ -450,14 +454,9 @@ void updateHand() {
   // Update thumb
   thumb.update();
 
-  #ifdef DEBUG  // Useful debug prints for tuning
-  Serial.print("Pitch1:");
-  Serial.print(managedServos[SERVO_INDEX_LOWER].getServoPosition());
-  Serial.print(" Pitch2:");
-  Serial.print(managedServos[SERVO_INDEX_UPPER].getServoPosition());
-  Serial.print(" Flex:");
-  Serial.println(managedServos[SERVO_INDEX_TIP].getServoPosition());
-  #endif
+  // Update wrist
+  wrist.update();
+
 }
 
 void loop() {
@@ -538,7 +537,7 @@ void rxHandler(BLEDevice central, BLECharacteristic characteristic) {
   }  
 }
 
-#define DOF_COUNT 15
+#define DOF_COUNT 17
 void dofHandler(BLEDevice central, BLECharacteristic characteristic) {
 
   // The angles are packed into 8-bit values centered at 128, so we need to
@@ -575,6 +574,10 @@ void dofHandler(BLEDevice central, BLECharacteristic characteristic) {
   thumb.setPitch(unpackedAngles[12]);
   thumb.setYaw(unpackedAngles[13]);
   thumb.setFlexion(unpackedAngles[14]);
+
+  // Wrist
+  wrist.setPitch(unpackedAngles[15]);
+  wrist.setYaw(unpackedAngles[16]);
 
 
   updateHand();

@@ -25,12 +25,17 @@ from bleak.backends.characteristic import BleakGATTCharacteristic
 from bleak.backends.device import BLEDevice
 from bleak.backends.scanner import AdvertisementData
 
+# Constants and controls - see the README.md file for details
+NUM_DOFS = 17       # Number of DOF's transmitted to hand
+JOINT_DEADBAND = 2  # Number of degrees to ignore for joint movement to help settle noise from MediaPipe
 
 
+# Debug drawing constants = adjust for your display as needed
 MARGIN = 10  # pixels
 FONT_SIZE = 1
 FONT_THICKNESS = 1
 HANDEDNESS_TEXT_COLOR = (88, 205, 54) # vibrant green
+
 
 def draw_landmarks_on_image(rgb_image, detection_result):
     """Draws the hand landmarks on the image for debugging purposes."""
@@ -38,6 +43,7 @@ def draw_landmarks_on_image(rgb_image, detection_result):
     handedness_list = detection_result.handedness
     annotated_image = np.copy(rgb_image)
 
+    
     # Loop through the detected hands to visualize.
     for idx in range(len(hand_landmarks_list)):
         hand_landmarks = hand_landmarks_list[idx]
@@ -98,12 +104,15 @@ def analyze_hand_landmarks(hand_landmarks):
     hand_landmarks = hand_landmarks.hand_landmarks[0]
 
     # Convert the hand landmark data into a numpy array of joint positions
-    joint_xyz = np.zeros((21,3))
-    for i in range(21):
+    num_landmarks = len(hand_landmarks)
+    assert(num_landmarks == 21) # Sanity check - demo is built around 21 landmark model
+
+    joint_xyz = np.zeros((num_landmarks,3))
+    for i in range(num_landmarks):
         joint_xyz[i] = np.array([hand_landmarks[i].x, hand_landmarks[i].y, hand_landmarks[i].z])
     
     # Create storage for the angles
-    joint_angles = np.zeros(15)
+    joint_angles = np.zeros(NUM_DOFS)
 
     # First finger, fore or index
     # Angles calculated correspond to knuckle flex, knuckle yaw and long tendon length for all fingers,
@@ -130,12 +139,16 @@ def analyze_hand_landmarks(hand_landmarks):
     joint_angles[11] = 180-angle_between(joint_xyz[17], joint_xyz[18], joint_xyz[19])
     #print(int(joint_angles[9]), int(joint_angles[10]), int(joint_angles[11]))
 
-    # Thumb, bit of a guess for basal rotation might be better automatic
+    # Thumb, upper, lower, and flexion
     joint_angles[12] = 180-angle_between(joint_xyz[1], joint_xyz[2], joint_xyz[4])
     joint_angles[13] = 60-angle_between(joint_xyz[2], joint_xyz[1], joint_xyz[5])
     joint_angles[14] = 180-angle_between(joint_xyz[2], joint_xyz[3], joint_xyz[4])
-    #joint_angles[15] = angle_between(joint_xyz[9], joint_xyz[5], joint_xyz[2])     # Ignoring thumb roll for now
-    #print(joint_angles[12], joint_angles[13], joint_angles[14], joint_angles[15])
+    #print(joint_angles[12], joint_angles[13], joint_angles[14])
+
+    # Wrist pitch and yaw
+    joint_angles[15] = 90-angle_between(joint_xyz[13], joint_xyz[0], (joint_xyz[0]+np.array([0,0,-1])), plane=[0,1,1])
+    joint_angles[16] = 90-angle_between(joint_xyz[13], joint_xyz[0], (joint_xyz[0]+np.array([1,0,0])), plane=[1,1,0])
+
 
     return joint_angles
 
@@ -145,7 +158,7 @@ def draw_angles_on_image(image, joint_angles):
     height, width, _ = image.shape
 
     # Draw the finger angles
-    for i in range(15):
+    for i in range(NUM_DOFS):
         cv2.putText(image, f"{i}: {int(joint_angles[i])}",
                 (int(width*0.05+int(i/3)*width*0.1), int(height*0.1 + (i%3)*height*0.05)), cv2.FONT_HERSHEY_DUPLEX,
                 FONT_SIZE/2, (0,0,0), FONT_THICKNESS, cv2.LINE_AA)
@@ -161,7 +174,10 @@ def draw_angles_on_image(image, joint_angles):
                 FONT_SIZE/2, (0,0,0), FONT_THICKNESS, cv2.LINE_AA)
     cv2.putText(image, "thb", (int(width*0.45), int(height*0.05)), cv2.FONT_HERSHEY_DUPLEX,
                 FONT_SIZE/2, (0,0,0), FONT_THICKNESS, cv2.LINE_AA)
-        
+    cv2.putText(image, "wri", (int(width*0.55), int(height*0.05)), cv2.FONT_HERSHEY_DUPLEX,
+                FONT_SIZE/2, (0,0,0), FONT_THICKNESS, cv2.LINE_AA)
+    
+
     return image
     
 # Main hand tracking function
@@ -335,8 +351,8 @@ async def ble_communication(tx_queue):
                 new_angles = await tx_queue.get()
 
                 # Threshold the values to reduce noise when hand is at rest
-                # Movement of more than 5 degrees is required to move the fingers
-                joint_angles = update_values(previous_angles, new_angles, 5)
+                # Movement of more than specified deadband is required to move the joints
+                joint_angles = update_values(previous_angles, new_angles, JOINT_DEADBAND)
                 previous_angles = joint_angles
                 
 

@@ -37,6 +37,8 @@ class Finger {
         void setPitch(int16_t pitch);
         void setYaw(int16_t yaw);
         void setFlexion(int16_t flexion);
+        void setMaxPosition();
+        void setMinPosition();
         
         inline int16_t getPitch() const { return mPitchTarget;}
         inline int16_t getYaw() const { return mYawTarget;}

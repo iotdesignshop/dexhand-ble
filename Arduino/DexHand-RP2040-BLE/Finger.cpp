@@ -81,6 +81,16 @@ void Finger::setYaw(int16_t yaw) {
     mYawTarget = CLAMP(yaw, getYawMin(), getYawMax());
 }
 
+void Finger::setMaxPosition()
+{
+    setPosition(getPitchMax(), getYawMax(), getFlexionMax());
+}
+
+void Finger::setMinPosition()
+{
+    setPosition(getPitchMin(), getYawMin(), getFlexionMin());
+}
+
 
 // This is sort of the workhorse function - it does a couple of things:
 // 1. It looks at the flexion angle and scales the yaw angle to keep the finger
