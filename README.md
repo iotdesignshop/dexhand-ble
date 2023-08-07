@@ -1,16 +1,19 @@
 # dexhand-ble
-Example of Bluetooth Low Energy Connection/Control to a DexHand Powered by an Arduino RP2040 Connect Board
+
+Arduino-based firmware, and a Python-based hand tracking demo to demonstrate the V1.0 DexHand - a low-cost, open-source, 3D printed humanoid robot hand.
 
 # Attribution
-The original DexHand project and mechanical designs were created by The Robot Studio and released in the V1.0-Dexhand project on GitHub (https://github.com/TheRobotStudio/V1.0-Dexhand). This project draws upon that mechanical design, adding software and firmware function to the original work in addition to some optimized geometry which may make it easier to 3D print and assemble some of the mechanical components. The original project was released under the Creative Commons "Attribution-NonCommercial-ShareAlike 4.0 International" License (or CC BY-NC-SA 4.0) and as such this project is released with the same license to comply with those terms.
+The original DexHand project and mechanical designs were created by [The Robot Studio](http://www.therobotstudio.com) and released in the [V1.0-Dexhand project on GitHub](https://github.com/TheRobotStudio/V1.0-Dexhand). This project draws upon that mechanical design, adding software and firmware function to the original work in addition to some optimized geometry which may make it easier to 3D print and assemble some of the mechanical components. The original project was released under the Creative Commons "Attribution-NonCommercial-ShareAlike 4.0 International" License (or CC BY-NC-SA 4.0) and as such this project is released with the same license to comply with those terms.
 
 We would like to thank The Robot Studio for releasing such an interesting and inspiring design to Open Source and we are happy to support that effort with this repo which will hopefully augment the original project in useful ways with software, firmware, and some additional assembly instructions.
 
-# Building a V1.0 DexHand 
+# Learning More and Building Your Own V1.0 DexHand 
 
-Assembly of a V1 DexHand is a somewhat involved process which is both difficult and incredibly rewarding. We have a GitHub Pages Site that provides an overview of the process, but you should expect that you will need to be an intermediate level maker - familiar with 3D printing, electronics, and assembly processes in order to pull off a successful build. 
+<img src="https://github.com/iotdesignshop/dexhand-ble/assets/2821763/19e4e960-564d-45bd-978e-292edc107db1" width="400">
 
-You can visit the assembly site here (TBD - Link)
+Assembly of a V1 DexHand is a somewhat involved process which is both difficult and incredibly rewarding. We have a [GitHub Pages Site that provides an overview of the process](https://www.dexhand.org), but you should expect that you will need to be an intermediate level maker - familiar with 3D printing, electronics, and assembly processes in order to pull off a successful build. 
+
+You can visit the main site here to learn more about the DexHand project: (https://www.dexhand.org)
 
 # Software Project Overview
 This project consists of two subfolders - one for the Arduino Firmware to install on an Arduino RP2040 Connect board to control the servos inside the DexHand and a Python demo script that uses Google MediaPipe Hand Tracker to generate poses for the hand based on a webcam feed, sending those poses over a Bluetooth LE connection to the Arduino board
