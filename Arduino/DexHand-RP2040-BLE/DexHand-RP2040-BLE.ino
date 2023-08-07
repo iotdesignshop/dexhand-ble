@@ -101,7 +101,7 @@ UniversalTimer heartbeatTimer(5000, true);  // 5 second message interval
 // Connection timeout timer
 UniversalTimer connectionTimeout(10000, true); // 10 second timeout
 
-
+// Reset servos to default position
 void setDefaultPose() {
   for (int index = 0; index < NUM_SERVOS; index++)
   {
@@ -109,103 +109,86 @@ void setDefaultPose() {
   }
 }
 
+// Hand pose for countdown - all fingers closed
 void setZeroPose() {
   
   setDefaultPose();
   
-  // Move all thumb joints to min
+  // Move thumb to lower closed position
   managedServos[SERVO_THUMB_TIP].moveToMaxPosition();
   managedServos[SERVO_THUMB_RIGHT].moveToMinPosition();
   managedServos[SERVO_THUMB_LEFT].moveToMaxPosition();
-  managedServos[SERVO_THUMB_ROTATE].setServoPosition(120);
-
-  // Move all fingers other than index finger to max position
-  for (int index = SERVO_INDEX_LOWER; index <= SERVO_PINKY_UPPER; index++)
+  
+  // Move all fingers to max position
+  for (int finger = 0; finger < NUM_FINGERS; finger++)
   {
-    managedServos[index].moveToMaxPosition();
+    fingers[finger].setMaxPosition();
+    fingers[finger].update();
   }
-  // Move all tips other than index to max position
-  for (int index = SERVO_INDEX_TIP; index <= SERVO_PINKY_TIP; index++)
-  {
-    managedServos[index].moveToMaxPosition();
-  }
-
-
 }
 
+// Hand pose for countdown - one finger open
 void setOnePose() {
 
   setDefaultPose();
   
-  // Move all thumb joints to min
+  // Move thumb to lower closed position
   managedServos[SERVO_THUMB_TIP].moveToMaxPosition();
   managedServos[SERVO_THUMB_RIGHT].moveToMinPosition();
   managedServos[SERVO_THUMB_LEFT].moveToMaxPosition();
-  managedServos[SERVO_THUMB_ROTATE].setServoPosition(120);
-
-  // Move all fingers other than index finger to max position
-  for (int index = SERVO_MIDDLE_LOWER; index <= SERVO_PINKY_UPPER; index++)
+  
+  // Move all fingers other than index to max position
+  for (int finger = 1; finger < NUM_FINGERS; finger++)
   {
-    managedServos[index].moveToMaxPosition();
-  }
-  // Move all tips other than index to max position
-  for (int index = SERVO_MIDDLE_TIP; index <= SERVO_PINKY_TIP; index++)
-  {
-    managedServos[index].moveToMaxPosition();
+    fingers[finger].setMaxPosition();
+    fingers[finger].update();
   }
 
 }
 
+// Hand pose for countdown - two fingers open
 void setTwoPose() {
 
   setDefaultPose();
 
-  // Move all thumb joints to min
+  // Move thumb to lower closed position
   managedServos[SERVO_THUMB_TIP].moveToMaxPosition();
   managedServos[SERVO_THUMB_RIGHT].moveToMinPosition();
   managedServos[SERVO_THUMB_LEFT].moveToMaxPosition();
-  managedServos[SERVO_THUMB_ROTATE].setServoPosition(120);
-
 
   // Move all fingers other than index,middle finger to max position
-  for (int index = SERVO_RING_LOWER; index <= SERVO_PINKY_UPPER; index++)
+  for (int finger = 2; finger < NUM_FINGERS; finger++)
   {
-    managedServos[index].moveToMaxPosition();
+    fingers[finger].setMaxPosition();
+    fingers[finger].update();
   }
-  // Move all tips other than index,middle to max position
-  for (int index = SERVO_RING_TIP; index <= SERVO_PINKY_TIP; index++)
-  {
-    managedServos[index].moveToMaxPosition();
-  }
+
 }
 
+// Hand pose for countdown - three fingers open
 void setThreePose() {
 
   setDefaultPose();
 
-  // Move all thumb joints to min
+  // Move thumb to lower closed position
   managedServos[SERVO_THUMB_TIP].moveToMaxPosition();
   managedServos[SERVO_THUMB_RIGHT].moveToMinPosition();
   managedServos[SERVO_THUMB_LEFT].moveToMaxPosition();
-  managedServos[SERVO_THUMB_ROTATE].setServoPosition(120);
-
-
-
-  for (int index = SERVO_PINKY_LOWER; index <= SERVO_PINKY_UPPER; index++)
+ 
+  // Move all fingers other than index,middle,ring finger to max position
+  for (int finger = 3; finger < NUM_FINGERS; finger++)
   {
-    managedServos[index].moveToMaxPosition();
-  }
-  for (int index = SERVO_PINKY_TIP; index <= SERVO_PINKY_TIP; index++)
-  {
-    managedServos[index].moveToMaxPosition();
+    fingers[finger].setMaxPosition();
+    fingers[finger].update();
   }
 }
 
+// Hand pose for countdown - four fingers open
 void setFourPose() {
 
   setDefaultPose();
 
-  // Move all thumb joints to min
+  // Move thumb to lower closed position
   managedServos[SERVO_THUMB_TIP].moveToMaxPosition();
   managedServos[SERVO_THUMB_RIGHT].moveToMinPosition();
   managedServos[SERVO_THUMB_LEFT].moveToMaxPosition();
@@ -213,24 +196,9 @@ void setFourPose() {
 
 }
 
-void wave()
-{
-  setDefaultPose();
-  for (int cycle = 0; cycle < 5; ++cycle) {
-    for (int yaw = wrist.getYawMin(); yaw <= wrist.getYawMax(); yaw ++) {
-      wrist.setYaw(yaw);
-      wrist.update();
-      delay(5);
-    }
-    for (int yaw = wrist.getYawMax(); yaw >= wrist.getYawMin(); yaw --) {
-      wrist.setYaw(yaw);
-      wrist.update();
-      delay(5);
-    }
-  }
-  setDefaultPose();
-}
 
+
+// Countdown and back up
 void count() {
   setZeroPose();
   delay(1000);
@@ -258,7 +226,23 @@ void count() {
   
 }
 
-
+// Waves the hand side to side
+void wave() {
+  setDefaultPose();
+  for (int cycle = 0; cycle < 5; ++cycle) {
+    for (int yaw = wrist.getYawMin(); yaw <= wrist.getYawMax(); yaw ++) {
+      wrist.setYaw(yaw);
+      wrist.update();
+      delay(5);
+    }
+    for (int yaw = wrist.getYawMax(); yaw >= wrist.getYawMin(); yaw --) {
+      wrist.setYaw(yaw);
+      wrist.update();
+      delay(5);
+    }
+  }
+  setDefaultPose();
+}
 
 void setup() {
   Serial.begin(9600);    // initialize serial communication
@@ -304,9 +288,9 @@ void setup() {
 }
 
 
+// Basic command parser for servo commands - nothing special, but it works
+// See the README.md for details on the commands and format
 void processCommand(String cmd) {
-  // Basic command parser for servo commands - nothing special, but it works
-  // Commands are of the form: "S:1:90" where S is the command, 1 is the servo index, and 90 is the position
 
   cmd.toLowerCase();
 

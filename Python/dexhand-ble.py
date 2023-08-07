@@ -4,19 +4,14 @@
 # Trent Shumay - trent@iotdesignshop.com
 
 import asyncio
-import sys
 import cv2
 import time
-import struct
 
 from bleak import BleakScanner
 
 import mediapipe as mp
 from mediapipe import solutions
 from mediapipe.framework.formats import landmark_pb2
-
-from itertools import count, takewhile
-from typing import Iterator
 
 import numpy as np
 
