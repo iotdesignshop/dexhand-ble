@@ -194,5 +194,37 @@ To launch the demo script:
 
 The numbers shown at the top left of the screen are the **DOF Angles** corresponding to the fingers and thumb. From top to bottom, they are the pitch, yaw, and long flexion tendon angle. These are the values that are streamed to the firmware via Bluetooth LE. It can help to understand what exactly your DexHand is doing if you can see those angles in real time, so we leave them up on the screen.
 
+## How Does the Hand Pose Data Get Sent to the DexHand
+
+When the demo boots up, it starts scanning for Bluetooth Low Energy devices that match the signature of the DexHand. Once connected, it streams the angles of the joints observed in the demo over to the DexHand as fast as possible (usually the connection is pretty quick and responsive, although BLE connections can vary depending on the hardware involved). 
+
+This is done by packing all of the DOF angles (there are 17 in total) into bytes, and sending that data over as a BLE characteristic. Generally, BLE Maximum Transmission Unit (MTU) sizes are 23 bytes for a single packet. So, we compress our angles each into a single byte to make them small enough to send in a single transmission for speed. 
+
+We do this by mapping the angular range from -180 to 180 degrees into 8-bits, meaning 0 = -180 degrees, 127 = 0 degrees, and 255 = 180 degrees.
+
+Although this is slightly lossy, it's more than good enough for the fidelity of the demo, and allows us to use a very simple transmission method to get our data from the demo to the hand.
+
+### DOF Service and Characteristic
+If you want to connect to the hand using different software, the service details are as follows:
+```
+BLE DOF Service ID:        1e16c1b4-1936-4f0e-ab62-5e0a702a4935
+BLE DOF Characteristic:    1e16c1b5-1936-4f0e-ab62-5e0a702a4935 (Write without response)
+```
+
+## UART Service and Command Stream
+
+In addition to the DOF Service, you can also access a standard UART emulation service on the DexHand firmware. This allows you to send the same commands that you can send via USB serial to the device for debugging and testing. 
+
+*Note: If you stream DOF angles while trying to use the UART commands, the stream will obliterate all the commands every time it updates. So, you can only do one or the other at the same time. Choose wisely.*
+
+### UART Service and Characteristic
+The UART Service uses the Nordic UART Service ID and Characteristics which is sort of the defacto standard for implementing UART via BLE. Many BLE apps will understand this service intrinsically. 
+```
+Nordic UART Service ID:    6E400001-B5A3-F393-E0A9-E50E24DCCA9E
+TX Characteristic (from DexHand to App):  6E400003-B5A3-F393-E0A9-E50E24DCCA9E (Supports BLE Notify)
+RX Characteristic (from App to Dexhand): 6E400002-B5A3-F393-E0A9-E50E24DCCA9E (BLE Write)
+```
+
+
 
 
