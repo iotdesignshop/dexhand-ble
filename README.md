@@ -232,6 +232,6 @@ For the most part, the math, and even some of the tricker bits of the hand contr
 
 You will notice there actually is not very much code at all on the Python side! Most of the heavy lifting is done by Google Media Pipe, and the Bleak BLE Library. The Arduino firmware is slightly more involved, but largely because C/C++ is a verbose language with a lot of boilerplate code. The actual math and logic for the hand function is also quite similar. 
 
-If you have questions or issues, reach out via the project and we will try to help.
+If you have questions or issues, [reach out via the project issues tracker](https://github.com/iotdesignshop/dexhand-ble/issues) and we will try to help.
 
 
