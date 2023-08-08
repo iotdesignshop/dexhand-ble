@@ -45,7 +45,7 @@ ManagedServo managedServos[NUM_SERVOS] =
   ManagedServo(7, 20, 140, 20, true),   // Ring Lower 4
   ManagedServo(6, 20, 140, 20, true),   // Ring Upper  5
   ManagedServo(9, 20, 140, 20, true),   // Pinky Lower 6
-  ManagedServo(8, 20, 150, 20, true),   // Pinky Upper 7
+  ManagedServo(8, 20, 130, 20, true),   // Pinky Upper 7
   ManagedServo(10, 50, 100, 50, false),  // Index Tip 8
   ManagedServo(11, 30, 90, 50, false), // Middle Tip 9
   ManagedServo(12, 50, 120, 50, true),  // Ring Tip 10
@@ -58,7 +58,16 @@ ManagedServo managedServos[NUM_SERVOS] =
   ManagedServo(1, 20, 160, 80, false)   // Wrist Right 17
 };
 
-#define NUM_FINGERS 4
+
+// Finger, Thumb, and Wrist objects for managing the DOF's in a more intuitive fashion.
+typedef enum fingerIdx {
+  FINGER_INDEX,
+  FINGER_MIDDLE,
+  FINGER_RING,
+  FINGER_PINKY,
+  NUM_FINGERS
+} FINGER_IDX;
+
 Finger fingers[NUM_FINGERS] = {
   Finger(managedServos[SERVO_INDEX_LOWER], managedServos[SERVO_INDEX_UPPER], managedServos[SERVO_INDEX_TIP]),
   Finger(managedServos[SERVO_MIDDLE_LOWER], managedServos[SERVO_MIDDLE_UPPER], managedServos[SERVO_MIDDLE_TIP]),
@@ -108,6 +117,9 @@ void setDefaultPose() {
     managedServos[index].setServoPosition(managedServos[index].getDefaultPosition());
   }
 }
+
+
+// -- Canned Procedural Poses for Testing -----------------------
 
 // Hand pose for countdown - all fingers closed
 void setZeroPose() {
@@ -244,6 +256,41 @@ void wave() {
   setDefaultPose();
 }
 
+// Perform a shaka
+void shaka()
+{
+  const int SHAKA_RANGE = 10;
+  setDefaultPose();
+
+  for (int finger = FINGER_INDEX; finger < FINGER_PINKY; ++finger)
+  {
+    fingers[finger].setMaxPosition();
+    fingers[finger].update();
+  }
+  thumb.setPitch(30);
+  thumb.setYaw(15);
+  thumb.update();
+
+  for (int cycle = 0; cycle < 5; ++cycle) {
+    for (int yaw = -SHAKA_RANGE; yaw <= SHAKA_RANGE; yaw ++) {
+      wrist.setYaw(yaw);
+      wrist.update();
+      delay(10);
+    }
+    for (int yaw = SHAKA_RANGE; yaw >= -SHAKA_RANGE; yaw --) {
+      wrist.setYaw(yaw);
+      wrist.update();
+      delay(10);
+    }
+  }
+
+  setDefaultPose();
+
+}
+
+
+// --- Main Setup -----------------------
+
 void setup() {
   Serial.begin(9600);    // initialize serial communication
   delay(2000);
@@ -287,6 +334,7 @@ void setup() {
 
 }
 
+// --- Main Loop and Processing -------------------------------
 
 // Basic command parser for servo commands - nothing special, but it works
 // See the README.md for details on the commands and format
@@ -400,6 +448,22 @@ void processCommand(String cmd) {
       Serial.println(position);
     }
   }
+  if (cmdType == "thumb") {
+    if (servoIndex == "pitch") {
+      thumb.setPitch(position);
+      thumb.update();
+
+      Serial.print("Setting thumb pitch to ");
+      Serial.println(position);
+    }
+    if (servoIndex == "yaw") {
+      thumb.setYaw(position);
+      thumb.update();
+
+      Serial.print("Setting thumb yaw to ");
+      Serial.println(position);
+    }
+  }
   if (cmdType == "one") {
     setOnePose();
   }
@@ -420,6 +484,9 @@ void processCommand(String cmd) {
   }
   if (cmdType == "wave") {
     wave();
+  }
+  if (cmdType == "shaka") {
+    shaka();
   }
   if (cmdType == "hb") {
     connectionTimeout.resetTimerValue();
@@ -491,15 +558,6 @@ void loop() {
         central.disconnect();
         break;
       }
-
-      // Update the hand angles based on any changes or computations
-      //updateHand();
-
-      // See if there's any data for us
-      //if (rxCharacteristic.written()) {
-      //  Serial.print("BLELoop: ");
-      //#  Serial.println(reinterpret_cast<const char*>(rxCharacteristic.value()));
-      //}
       
     }
 

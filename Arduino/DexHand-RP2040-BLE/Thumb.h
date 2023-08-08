@@ -48,7 +48,6 @@ class Thumb {
         // Ranges
         inline void setPitchRange(int16_t min, int16_t max) { mPitchRange[0] = min; mPitchRange[1] = max; }
         inline void setYawRange(int16_t min, int16_t max) { mYawRange[0] = min; mYawRange[1] = max; }
-        inline void setYawBias(int16_t bias) { mYawBias = bias; }
         inline void setFlexionRange(int16_t min, int16_t max) { mFlexionRange[0] = min; mFlexionRange[1] = max; }
         inline void setRollRange(int16_t min, int16_t max) { mRollRange[0] = min; mRollRange[1] = max; }    
 
@@ -57,7 +56,6 @@ class Thumb {
         
         inline int16_t getYawMin() const { return mYawRange[0]; }
         inline int16_t getYawMax() const { return mYawRange[1]; }
-        inline int16_t getYawBias() const { return mYawBias; }
         
         inline int16_t getFlexionMin() const { return mFlexionRange[0]; }
         inline int16_t getFlexionMax() const { return mFlexionRange[1]; }
@@ -83,8 +81,7 @@ class Thumb {
         int16_t mYawRange[2];
         int16_t mFlexionRange[2];
         int16_t mRollRange[2];
-        int16_t mYawBias;
-
+        
         void updatePitchServos();
 };
 

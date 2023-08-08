@@ -31,6 +31,9 @@ FONT_SIZE = 1
 FONT_THICKNESS = 1
 HANDEDNESS_TEXT_COLOR = (88, 205, 54) # vibrant green
 
+# Toggles
+wrist_enabled = True
+
 
 def draw_landmarks_on_image(rgb_image, detection_result):
     """Draws the hand landmarks on the image for debugging purposes."""
@@ -141,9 +144,14 @@ def analyze_hand_landmarks(hand_landmarks):
     #print(joint_angles[12], joint_angles[13], joint_angles[14])
 
     # Wrist pitch and yaw
-    joint_angles[15] = 90-angle_between(joint_xyz[13], joint_xyz[0], (joint_xyz[0]+np.array([0,0,-1])), plane=[0,1,1])
-    joint_angles[16] = 90-angle_between(joint_xyz[13], joint_xyz[0], (joint_xyz[0]+np.array([1,0,0])), plane=[1,1,0])
+    global wrist_enabled
 
+    if wrist_enabled:
+        joint_angles[15] = 90-angle_between(joint_xyz[13], joint_xyz[0], (joint_xyz[0]+np.array([0,0,-1])), plane=[0,1,1])
+        joint_angles[16] = 90-angle_between(joint_xyz[13], joint_xyz[0], (joint_xyz[0]+np.array([1,0,0])), plane=[1,1,0])
+    else:
+        joint_angles[15] = 0
+        joint_angles[16] = 0
 
     return joint_angles
 
@@ -233,11 +241,19 @@ async def hand_tracking(tx_queue):
                 # Yield
                 await asyncio.sleep(0.01)
 
+                # Check for keypress
+                key = cv2.waitKey(1) & 0xFF
+                
                 # Check for escape key
-                if cv2.waitKey(5) & 0xFF == 27:
+                if key == 27:
                      # Cancel all tasks
                     for task in asyncio.all_tasks():
                         task.cancel()
+                # Check for w key to toggle wrist
+                elif key == ord('w'):
+                    global wrist_enabled
+                    wrist_enabled = not wrist_enabled
+                    print(f"Wrist enabled: {wrist_enabled}")
         
         except asyncio.CancelledError:
             print('Hand tracking task has been cancelled.')
