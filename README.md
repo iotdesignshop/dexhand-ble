@@ -2,37 +2,40 @@
 
 Arduino-based firmware, and a Python-based hand tracking demo to demonstrate the V1.0 DexHand - a low-cost, open-source, 3D printed humanoid robot hand.
 
+*Note: This project covers the software and firmware for basic control of a V1.0 DexHand. If you'd like to learn more about how to build your own hand, you can visit our page explaining this process at (https://www.dexhand.org). It has a lot more information on the hardware and physical build of this low-cost, open source dexterous hand.*
+
+
 # Attribution
-The original DexHand project and mechanical designs were created by [The Robot Studio](http://www.therobotstudio.com) and released in the [V1.0-Dexhand project on GitHub](https://github.com/TheRobotStudio/V1.0-Dexhand). This project draws upon that mechanical design, adding software and firmware function to the original work in addition to some optimized geometry which may make it easier to 3D print and assemble some of the mechanical components. The original project was released under the Creative Commons "Attribution-NonCommercial-ShareAlike 4.0 International" License (or CC BY-NC-SA 4.0) and as such this project is released with the same license to comply with those terms.
+The original DexHand project and mechanical designs were created by [The Robot Studio](http://www.therobotstudio.com) and released in the [V1.0-Dexhand project on GitHub](https://github.com/TheRobotStudio/V1.0-Dexhand). This project draws upon that mechanical design, adding software and firmware function to the original work. The original project was released under the Creative Commons "Attribution-NonCommercial-ShareAlike 4.0 International" License (or CC BY-NC-SA 4.0) and as such this project is released with the same license to comply with those terms.
 
 We would like to thank The Robot Studio for releasing such an interesting and inspiring design to Open Source and we are happy to support that effort with this repo which will hopefully augment the original project in useful ways with software, firmware, and some additional assembly instructions.
 
-# Learning More and Building Your Own V1.0 DexHand 
-
-<img src="https://github.com/iotdesignshop/dexhand-ble/assets/2821763/19e4e960-564d-45bd-978e-292edc107db1" width="400">
-
-Assembly of a V1 DexHand is a somewhat involved process which is both difficult and incredibly rewarding. We have a [GitHub Pages Site that provides an overview of the process](https://www.dexhand.org), but you should expect that you will need to be an intermediate level maker - familiar with 3D printing, electronics, and assembly processes in order to pull off a successful build. 
-
-You can visit the main site here to learn more about the DexHand project: (https://www.dexhand.org)
-
 # Software Project Overview
-This project consists of two subfolders - one for the Arduino Firmware to install on an Arduino RP2040 Connect board to control the servos inside the DexHand and a Python demo script that uses Google MediaPipe Hand Tracker to generate poses for the hand based on a webcam feed, sending those poses over a Bluetooth LE connection to the Arduino board
 
-## Requirements 
+## Project Contents 
+This project consists of two subfolders:
+- **Arduino** Contains Arduino-based Firmware to install on an [Arduino Nano RP2040 Connect](https://docs.arduino.cc/hardware/nano-rp2040-connect) board to control the servos inside the DexHand, and to provide a Bluetooth Low Energy (BLE) connection to the hand controls for wirelessly streaming data to the hand.
+- **Python** Contains a Python demo script that uses [Google MediaPipe Hand Tracker](https://developers.google.com/mediapipe/solutions/vision/hand_landmarker) to generate poses for the hand based on a webcam feed, sending those poses over the BLE connection to the Arduino board
 
-### Demo Application: Python Running on a PC/Mac/Linux
+## Demo Software Requirements 
+
+### Python Demo Application: Python Running on a PC/Mac/Linux
+<img src="https://github.com/iotdesignshop/dexhand-ble/assets/2821763/8220275d-d958-4193-950f-b063d92b0877" width=300px>
+
 The Python scripts should run reasonably well on a properly configured Linux Machine, PC, or Mac if you follow the instructions carefully below. 
 
 The demonstration script uses the Google Mediapipe Hand Tracker to perform software-based skeletal tracking of the user's hand motion in a 2D Webcam on the host computer. This doesn't require any special hardware, other than a computer with a Webcam but a GPU may improve performance of this tracker.
 
 ### Firmware: Arduino on Nano RP2040 Connect Board
-The hardware build is based on the Arduino Nano RP2040 Connect board. This is an Arduino board based on the Raspberry Pi Pico MCU with additional wireless functions provided by a UBlox module. You can see full specs for this board on the Arduino website (https://docs.arduino.cc/hardware/nano-rp2040-connect). You can purchase the board direct from Arduino or from distributors such as DigiKey. Although this is not the cheapest Pi Pico board on the market, we felt that the security of the Arduino ecosystem and an officially supported board was well worth it for anyone building the hand. We may port the firmware to other boards in the future as well, and encourage the community to do so as well and contribute the results back to the project. 
+<img width="300px" alt="Arduino-Community" src="https://github.com/iotdesignshop/dexhand-ble/assets/2821763/9ecde78a-03c9-43b5-a738-ea8ba403c2b7">
+
+The hardware build is based on the Arduino Nano RP2040 Connect board. This is an Arduino board based on the Raspberry Pi Pico MCU with additional wireless functions provided by a UBlox module. You can see full specs for this board on the Arduino website (https://docs.arduino.cc/hardware/nano-rp2040-connect). You can purchase the board direct from Arduino or from distributors such as DigiKey. 
+
+Wiring up the board to the servos in the DexHand is a somewhat complex task, and is covered on the main DexHand page at (https://www.dexhand.org). 
 
 
 
-
-# How to Set Up and Build the Arduino Firmware
-
+# Arduino Firmware Set Up and Compilation
 ## Ardunio IDE Set-Up
 To compile the firmware, you will require Arduino IDE 2.x. Configuration of the Arduino environment and how to upload code to a board, etc is well covered in other tutorials, so we'll just list the basics here and the assumption is you can compile and flash the RP2040 Connect Board. The Getting Started Guide for the Nano RP2040 Connect is available here: https://docs.arduino.cc/software/ide-v1/tutorials/getting-started/cores/arduino-mbed_nano
 
@@ -46,7 +49,51 @@ The following libraries must be installed via the Arduino Library Manager in the
 If you are not familiar with the process of installing libraries, you may wish to reference this guide: https://support.arduino.cc/hc/en-us/articles/5145457742236-Add-libraries-to-Arduino-IDE
 
 ## Compile and Upload
-Compile and flash your board with the Arduino project found in the ```dexhand-ble/Arduino/DexHand-RP2040-BLE``` folder. Once you have it running, you can launch the Python demo to connect to the Arduino via Bluetooth LE.
+Compile and flash your board with the Arduino project found in the ```dexhand-ble/Arduino/DexHand-RP2040-BLE``` folder. 
+
+
+# Arduino Firmware Usage 
+
+## Modes of Operation
+The firmware has two distinct modes of operation:
+
+- **Direct Control** In Direct Control mode, you can issue text commands to the DexHand via the Arduino IDE or any other tool that supports serial connections to the Arduino via the host USB connection. Details on the supported command set are provided below. Or, feel free to come up with your own animations and states and add them to the hand.
+- **Bluetooth Low Energy Streaming** In Bluetooth Streaming mode, angles specifying the position of the degrees of freedom in the hand are streamed across a Bluetooth LE connection to the hand. Additionally, you can send over the same command supported in Direct Control mode as well via a UART service provided by the firmware in tha hand.
+
+## Direct Control Commands
+
+The following commands are supported via USB serial, or via the Bluetooth LE UART Service (more on that below in the Bluetooth Streaming Section). The Direct Control Commands are the quickest way to get started and to test your DexHand, and the command set contains some functions that are useful for setting up and tuning the tendons in the hand, so start here first.
+
+### Setting a Servo Position
+
+```set:<servonum>:<angle>```
+
+Sets the servo index provided in *servonum* to the specified *angle*. Note that angles are range-limited by the servo configuration table, so if you ask for an angle outside the range of a servo it may not move. The servo table and ranges are found near the top of the ```DexHand-RP2040-BLE.ino`` source file in the Arduino project. 
+
+This function can be useful for experimenting with the range of motion of servos, or for trying to figure out hand poses for animations.
+
+The servo indices are as follows:
+
+```
+#define SERVO_INDEX_LOWER   0
+#define SERVO_INDEX_UPPER   1
+#define SERVO_MIDDLE_LOWER  2
+#define SERVO_MIDDLE_UPPER  3
+#define SERVO_RING_LOWER  4
+#define SERVO_RING_UPPER  5
+#define SERVO_PINKY_LOWER  6
+#define SERVO_PINKY_UPPER  7
+#define SERVO_INDEX_TIP 8
+#define SERVO_MIDDLE_TIP 9
+#define SERVO_RING_TIP 10
+#define SERVO_PINKY_TIP 11
+#define SERVO_THUMB_TIP 12
+#define SERVO_THUMB_RIGHT 13
+#define SERVO_THUMB_LEFT 14
+#define SERVO_THUMB_ROTATE 15
+#define SERVO_WRIST_L 16
+#define SERVO_WRIST_R 17
+```
 
 
 # How to Set Up and Run the Python Demo
