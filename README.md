@@ -68,7 +68,7 @@ The following commands are supported via USB serial, or via the Bluetooth LE UAR
 
 ```set:<servonum>:<angle>```
 
-Sets the servo index provided in *servonum* to the specified *angle*. Note that angles are range-limited by the servo configuration table, so if you ask for an angle outside the range of a servo it may not move. The servo table and ranges are found near the top of the ```DexHand-RP2040-BLE.ino`` source file in the Arduino project. 
+Sets the servo index provided in *servonum* to the specified *angle*. Note that angles are range-limited by the servo configuration table, so if you ask for an angle outside the range of a servo it may not move. The servo table and ranges are found near the top of the [DexHand-RP2040-BLE.ino](Arduino/DexHand-RP2040-BLE/DexHand-RP2040-BLE.ino) source file in the Arduino project. 
 
 This function can be useful for experimenting with the range of motion of servos, or for trying to figure out hand poses for animations.
 
@@ -94,6 +94,60 @@ The servo indices are as follows:
 #define SERVO_WRIST_L 16
 #define SERVO_WRIST_R 17
 ```
+
+### Moving a Servo to Min Range, Max Range (and Optionally Overriding Ranges for Testing)
+
+```min:<servonum>(:<angle>)```
+```max:<servonum>(:<angle>)```
+
+The min and max commands are analagous. If you do not specify the *angle* parameter, they are used to move the servo to the current minimum or maximum end of it's range. For example:
+
+```min:8``` would move servo index 8 (SERVO_INDEX_TIP) to the minimum value of it's range in the servo table.
+
+```max:16``` would move servo index 16 (SERVO_WRIST_L) to the maximum value of it's range in the servo table.
+
+During the tuning process, it may be helpful to override these ranges temporarily while testing the limits of motion of your hand. If you specify the *angle* parameter, the command will both set a new min or max for the servo, and move to that value:
+
+```min:8:30``` would set the minumum range for servo index 8 (SERVO_INDEX_TIP) to 30 degrees, and then move the servo to that value.
+
+```max:16:160``` would set the maximum range index 16 (SERVO_WRIST_L) to 160 degrees, and then move the servo to that value.
+
+
+### Moving a Finger to Minimum or Maximum Extension
+
+```fingermax:<fingernum>```
+```fingermin:<fingernum>```
+
+For testing, you can move an entire finger to it's minimum or maximum range. The finger indices are as follows:
+
+```0 = Index, 1 = Middle, 2 = Ring, 3 = Pinky```
+
+*Note: The thumb is not included in this function as it's motion is more complex than a finger, and those angles should be set directly*
+
+
+### Wrist Pitch and Yaw Movements
+
+```wrist:pitch:<angle>```
+```wrist:yaw:<angle>```
+
+Fairly self explanatory - used for testing the range of motion of the wrist joints. In the default firmware, the angular range is -20 to + 20 degrees on both the pitch and yaw of the wrist. 
+
+
+### Returning to Default Pose
+
+```default```
+
+After a while, experimenting with different poses can get you into a bit of an unknown state. Calling the ```default``` function will return all the angles to their default initial values.
+
+
+### Fun Animations - Counting, Waving, and Shaka
+
+```count```
+```wave```
+```shaka```
+
+These commands can be issued to get the hand to count to five, to wave at you, or to show you a shaka. 
+
 
 
 # How to Set Up and Run the Python Demo
