@@ -1,8 +1,11 @@
 # dexhand-ble
 
+![make-a-gif_AdobeExpress-2](https://github.com/iotdesignshop/dexhand-ble/assets/2821763/de311dc5-b41e-4f2f-b8e6-849a51983018)
+
 Arduino-based firmware, and a Python-based hand tracking demo to demonstrate the V1.0 DexHand - a low-cost, open-source, 3D printed humanoid robot hand.
 
 *Note: This project covers the software and firmware for basic control of a V1.0 DexHand. If you'd like to learn more about how to build your own hand, you can visit our page explaining this process at (https://www.dexhand.org). It has a lot more information on the hardware and physical build of this low-cost, open source dexterous hand.*
+
 
 
 # Attribution
