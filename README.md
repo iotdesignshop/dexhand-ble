@@ -226,5 +226,12 @@ RX Characteristic (from App to Dexhand): 6E400002-B5A3-F393-E0A9-E50E24DCCA9E (B
 ```
 
 
+# Digging Deeper
+
+For the most part, the math, and even some of the tricker bits of the hand control is straight forward and documented inside the Arduino and Python source code provided in the project. That's sort of your "first assignment" - go review that code and have a look at how things work. 
+
+You will notice there actually is not very much code at all on the Python side! Most of the heavy lifting is done by Google Media Pipe, and the Bleak BLE Library. The Arduino firmware is slightly more involved, but largely because C/C++ is a verbose language with a lot of boilerplate code. The actual math and logic for the hand function is also quite similar. 
+
+If you have questions or issues, reach out via the project and we will try to help.
 
 
