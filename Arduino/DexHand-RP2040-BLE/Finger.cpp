@@ -83,12 +83,12 @@ void Finger::setYaw(int16_t yaw) {
 
 void Finger::setMaxPosition()
 {
-    setPosition(getPitchMax(), getYawMax(), getFlexionMax());
+    setPosition(getPitchMax(), 0, getFlexionMax());
 }
 
 void Finger::setMinPosition()
 {
-    setPosition(getPitchMin(), getYawMin(), getFlexionMin());
+    setPosition(getPitchMin(), 0, getFlexionMin());
 }
 
 

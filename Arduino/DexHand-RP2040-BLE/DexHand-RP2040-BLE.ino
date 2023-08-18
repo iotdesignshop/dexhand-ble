@@ -38,24 +38,24 @@
 ManagedServo managedServos[NUM_SERVOS] = 
 {
   // Servo GPIO Pin, Min, Max, Default, Inverted
-  ManagedServo(2, 20, 130, 20, false),  // Index Lower 0
-  ManagedServo(3, 20, 130, 20, false),  // Index Upper 1
-  ManagedServo(4, 30, 140, 30, false),  // Middle Lower 2
-  ManagedServo(5, 30, 140, 30, false),  // Middle Upper 3
-  ManagedServo(7, 20, 140, 20, true),   // Ring Lower 4
-  ManagedServo(6, 20, 140, 20, true),   // Ring Upper  5
-  ManagedServo(9, 20, 140, 20, true),   // Pinky Lower 6
-  ManagedServo(8, 20, 130, 20, true),   // Pinky Upper 7
-  ManagedServo(10, 50, 100, 50, false),  // Index Tip 8
-  ManagedServo(11, 30, 90, 50, false), // Middle Tip 9
-  ManagedServo(12, 50, 120, 50, true),  // Ring Tip 10
-  ManagedServo(13, 70, 110, 70, true),  // Pinky Tip 11
-  ManagedServo(14, 20, 120, 20, true),  // Thumb Tip 12
-  ManagedServo(15, 20, 160, 20, false),  // Thumb Right 13
-  ManagedServo(16, 20, 150, 20, false),  // Thumb Left 14
-  ManagedServo(17, 20, 95, 20, false),  // Thumb Rotate 15
-  ManagedServo(0, 20, 160, 80, false),  // Wrist Left 16
-  ManagedServo(1, 20, 160, 80, false)   // Wrist Right 17
+  ManagedServo(2, 30, 110, 30, false),  // Index Lower 0
+  ManagedServo(1, 30, 140, 30, true),  // Index Upper 1
+  ManagedServo(5, 30, 120, 30, false),  // Middle Lower 2
+  ManagedServo(4, 30, 150, 30, true),  // Middle Upper 3
+  ManagedServo(3, 30, 150, 30, true),   // Ring Lower 4
+  ManagedServo(0, 30, 100, 30, false),   // Ring Upper  5
+  ManagedServo(7, 30, 140, 30, true),   // Pinky Lower 6
+  ManagedServo(6, 30, 100, 30, false),   // Pinky Upper 7
+  ManagedServo(10, 30, 100, 30, false),  // Index Tip 8
+  ManagedServo(11, 30, 90, 30, false), // Middle Tip 9
+  ManagedServo(12, 30, 120, 30, true),  // Ring Tip 10
+  ManagedServo(13, 30, 130, 30, true),  // Pinky Tip 11
+  ManagedServo(14, 30, 140, 30, false),  // Thumb Tip 12
+  ManagedServo(15, 30, 160, 30, false),  // Thumb Right 13
+  ManagedServo(16, 20, 130, 20, false),  // Thumb Left 14
+  ManagedServo(17, 30, 90, 30, false),  // Thumb Rotate 15
+  ManagedServo(9, 30, 160, 95, false),  // Wrist Left 16
+  ManagedServo(8, 30, 160, 95, false)   // Wrist Right 17
 };
 
 
@@ -130,7 +130,7 @@ void setZeroPose() {
   managedServos[SERVO_THUMB_TIP].moveToMaxPosition();
   managedServos[SERVO_THUMB_RIGHT].moveToMinPosition();
   managedServos[SERVO_THUMB_LEFT].moveToMaxPosition();
-  
+
   // Move all fingers to max position
   for (int finger = 0; finger < NUM_FINGERS; finger++)
   {
@@ -212,6 +212,13 @@ void setFourPose() {
 
 // Countdown and back up
 void count() {
+
+  // Move thumb to lower closed position
+  managedServos[SERVO_THUMB_TIP].moveToMaxPosition();
+  managedServos[SERVO_THUMB_RIGHT].moveToMinPosition();
+  managedServos[SERVO_THUMB_LEFT].moveToMaxPosition();
+  delay(200);
+
   setZeroPose();
   delay(1000);
   setOnePose();
