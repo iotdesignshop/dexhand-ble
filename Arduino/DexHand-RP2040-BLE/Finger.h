@@ -39,6 +39,7 @@ class Finger {
         void setFlexion(int16_t flexion);
         void setMaxPosition();
         void setMinPosition();
+        void setExtension(int16_t percent);     // Sets overall finger extension from 0 (closed) to 100 (open)
         
         inline int16_t getPitch() const { return mPitchTarget;}
         inline int16_t getYaw() const { return mYawTarget;}
@@ -59,7 +60,7 @@ class Finger {
         
         inline int16_t getFlexionMin() const { return mFlexionRange[0]; }
         inline int16_t getFlexionMax() const { return mFlexionRange[1]; }
-
+        
 
 
     private:

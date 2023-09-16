@@ -39,6 +39,7 @@ class Thumb {
         void setRoll(int16_t roll);
         void setMaxPosition();
         void setMinPosition();
+        void setExtension(int16_t percent);     // Sets overall thumb extension from 0 (closed) to 100 (open)
         
         
         inline int16_t getPitch() const { return mPitchTarget;}

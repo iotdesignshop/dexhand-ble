@@ -91,6 +91,20 @@ void Finger::setMinPosition()
     setPosition(getPitchMin(), 0, getFlexionMin());
 }
 
+void Finger::setExtension(int16_t extension)
+{
+    // Clamp and invert
+    extension = 100-CLAMP(extension, 0, 100);
+
+    // Map to the range of the pitch servos
+    int16_t pitch = mapInteger(extension, 0, 100, getPitchMin(), getPitchMax());
+    setPitch(pitch);
+
+    // Set the flexion
+    int16_t flexion = mapInteger(extension, 0, 100, getFlexionMin(), getFlexionMax());
+    setFlexion(flexion);
+}
+
 
 // This is sort of the workhorse function - it does a couple of things:
 // 1. It looks at the flexion angle and scales the yaw angle to keep the finger

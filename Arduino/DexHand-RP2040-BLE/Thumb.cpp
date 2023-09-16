@@ -89,6 +89,20 @@ void Thumb::setMinPosition()
     setPosition(getPitchMin(), getYawMin(), getFlexionMin());
 }
 
+void Thumb::setExtension(int16_t extension)
+{
+    // Clamp and invert
+    extension = 100-CLAMP(extension, 0, 100);
+
+    // Map to the range of the pitch servos
+    int16_t pitch = mapInteger(extension, 0, 100, getPitchMin(), getPitchMax());
+    setPitch(pitch);
+
+    // Set the flexion
+    int16_t flexion = mapInteger(extension, 0, 100, getFlexionMin(), getFlexionMax());
+    setFlexion(flexion);
+}
+
 
 /* This function is a little bit tricky and worthy of explanation:
 

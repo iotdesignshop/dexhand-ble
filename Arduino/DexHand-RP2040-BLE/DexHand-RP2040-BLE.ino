@@ -50,9 +50,9 @@ ManagedServo managedServos[NUM_SERVOS] =
   ManagedServo(11, 30, 90, 30, false), // Middle Tip 9
   ManagedServo(12, 30, 120, 30, true),  // Ring Tip 10
   ManagedServo(13, 30, 130, 30, true),  // Pinky Tip 11
-  ManagedServo(14, 30, 140, 30, false),  // Thumb Tip 12
-  ManagedServo(15, 30, 160, 30, false),  // Thumb Right 13
-  ManagedServo(16, 20, 130, 20, false),  // Thumb Left 14
+  ManagedServo(14, 30, 130, 30, false),  // Thumb Tip 12
+  ManagedServo(15, 30, 150, 30, false),  // Thumb Right 13
+  ManagedServo(16, 20, 120, 20, false),  // Thumb Left 14
   ManagedServo(17, 30, 90, 30, false),  // Thumb Rotate 15
   ManagedServo(9, 30, 160, 95, false),  // Wrist Left 16
   ManagedServo(8, 30, 160, 95, false)   // Wrist Right 17
@@ -437,6 +437,27 @@ void processCommand(String cmd) {
       Serial.print("Setting finger ");
       Serial.print(index);
       Serial.print(" to min");
+    }
+  }
+  if (cmdType == "fingerextension") {
+    // Accepts range from 0-100 where 0 is fully retracted toward palm, and 100 is fully extended away from palm
+    if (index < NUM_FINGERS)
+    {
+      fingers[index].setExtension(position);
+      fingers[index].update();
+
+      Serial.print("Setting finger ");
+      Serial.print(index);
+      Serial.print(" extension to ");
+      Serial.println(position);
+    }
+    else if (index == NUM_FINGERS)
+    {
+      thumb.setExtension(position);
+      thumb.update();
+
+      Serial.print("Setting thumb extension to ");
+      Serial.println(position);
     }
   }
   if (cmdType == "wrist") {
