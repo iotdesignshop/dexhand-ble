@@ -520,6 +520,21 @@ void processCommand(String cmd) {
     connectionTimeout.resetTimerValue();
     Serial.println("Heartbeat received");
   }
+  if (cmdType == "gesture") {
+    if (servoIndex == "count") {
+      count();
+    }
+    if (servoIndex == "wave") {
+      wave();
+    }
+    if (servoIndex == "shaka") {
+      shaka();
+    }
+    if (servoIndex == "reset") {
+      setDefaultPose();
+      delay(500);
+    }
+  }
 }
 
 
@@ -546,7 +561,7 @@ void loop() {
 
   // Is there serial data available for input?
   if (Serial.available()) {
-    String cmd = Serial.readString();
+    String cmd = Serial.readStringUntil('\n');
 
     Serial.print("Received CMD: ");
     Serial.println(cmd);
