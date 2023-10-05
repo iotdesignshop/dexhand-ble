@@ -5,6 +5,7 @@
 #include "Finger.h"
 #include "Thumb.h"
 #include "Wrist.h"
+#include "WiFiNINA.h"
 
 
 
@@ -29,6 +30,8 @@
 #define SERVO_THUMB_ROTATE 15
 #define SERVO_WRIST_L 16
 #define SERVO_WRIST_R 17
+
+#define DEMO_BUTTON 19    // Used for an optional external button to allow the hand to run through a series of canned poses
 
 
 // The table below defines the servo parameters for each of the servos in the hand.
@@ -127,9 +130,7 @@ void setZeroPose() {
   setDefaultPose();
   
   // Move thumb to lower closed position
-  managedServos[SERVO_THUMB_TIP].moveToMaxPosition();
-  managedServos[SERVO_THUMB_RIGHT].moveToMinPosition();
-  managedServos[SERVO_THUMB_LEFT].moveToMaxPosition();
+  thumb.setMaxPosition();
 
   // Move all fingers to max position
   for (int finger = 0; finger < NUM_FINGERS; finger++)
@@ -145,9 +146,7 @@ void setOnePose() {
   setDefaultPose();
   
   // Move thumb to lower closed position
-  managedServos[SERVO_THUMB_TIP].moveToMaxPosition();
-  managedServos[SERVO_THUMB_RIGHT].moveToMinPosition();
-  managedServos[SERVO_THUMB_LEFT].moveToMaxPosition();
+  thumb.setMaxPosition();
   
   // Move all fingers other than index to max position
   for (int finger = 1; finger < NUM_FINGERS; finger++)
@@ -164,10 +163,8 @@ void setTwoPose() {
   setDefaultPose();
 
   // Move thumb to lower closed position
-  managedServos[SERVO_THUMB_TIP].moveToMaxPosition();
-  managedServos[SERVO_THUMB_RIGHT].moveToMinPosition();
-  managedServos[SERVO_THUMB_LEFT].moveToMaxPosition();
-
+  thumb.setMaxPosition();
+  
   // Move all fingers other than index,middle finger to max position
   for (int finger = 2; finger < NUM_FINGERS; finger++)
   {
@@ -183,10 +180,8 @@ void setThreePose() {
   setDefaultPose();
 
   // Move thumb to lower closed position
-  managedServos[SERVO_THUMB_TIP].moveToMaxPosition();
-  managedServos[SERVO_THUMB_RIGHT].moveToMinPosition();
-  managedServos[SERVO_THUMB_LEFT].moveToMaxPosition();
- 
+  thumb.setMaxPosition();
+  
   // Move all fingers other than index,middle,ring finger to max position
   for (int finger = 3; finger < NUM_FINGERS; finger++)
   {
@@ -201,11 +196,8 @@ void setFourPose() {
   setDefaultPose();
 
   // Move thumb to lower closed position
-  managedServos[SERVO_THUMB_TIP].moveToMaxPosition();
-  managedServos[SERVO_THUMB_RIGHT].moveToMinPosition();
-  managedServos[SERVO_THUMB_LEFT].moveToMaxPosition();
-  managedServos[SERVO_THUMB_ROTATE].setServoPosition(120);
-
+  thumb.setMaxPosition();
+  
 }
 
 
@@ -338,6 +330,9 @@ void setup() {
   Serial.println("Bluetooth device active, waiting for connections...");
 
   setDefaultPose();
+
+  // ----- Demo Button Setup -----
+  pinMode(DEMO_BUTTON, INPUT_PULLUP);
 
 }
 
@@ -608,6 +603,22 @@ void loop() {
     Serial.println(central.address());
     setDefaultPose();
   }
+
+  // ----- Demo Button Loop -----
+  // If the demo button is pressed, then we will run through a series of canned poses
+  // to demonstrate the hand functionality
+  if (digitalRead(DEMO_BUTTON) == LOW) {
+    Serial.println("Demo button pressed");
+    wave();
+    delay(500);
+    count();
+    delay(500);
+    shaka();
+    delay(500);
+    setDefaultPose();
+    delay(500);
+  }
+  
 }
 
 void rxHandler(BLEDevice central, BLECharacteristic characteristic) {

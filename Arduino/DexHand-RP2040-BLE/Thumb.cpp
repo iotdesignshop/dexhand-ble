@@ -82,11 +82,15 @@ void Thumb::setRoll(int16_t roll) {
 void Thumb::setMaxPosition()
 {
     setPosition(getPitchMax(), getYawMax(), getFlexionMax());
+    setRoll(getRollMax());
+    update();
 }
 
 void Thumb::setMinPosition()
 {
     setPosition(getPitchMin(), getYawMin(), getFlexionMin());
+    setRoll(getRollMin());
+    update();
 }
 
 void Thumb::setExtension(int16_t extension)
@@ -101,6 +105,10 @@ void Thumb::setExtension(int16_t extension)
     // Set the flexion
     int16_t flexion = mapInteger(extension, 0, 100, getFlexionMin(), getFlexionMax());
     setFlexion(flexion);
+
+    // Set the roll
+    int16_t roll = mapInteger(extension, 0, 100, getRollMin(), getRollMax());
+    setRoll(roll);
 }
 
 
