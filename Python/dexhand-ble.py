@@ -147,7 +147,7 @@ def analyze_hand_landmarks(hand_landmarks):
     global wrist_enabled
 
     if wrist_enabled:
-        joint_angles[15] = 90-angle_between(joint_xyz[13], joint_xyz[0], (joint_xyz[0]+np.array([0,0,-1])), plane=[0,1,1])
+        joint_angles[15] = 90-angle_between(joint_xyz[13], joint_xyz[0], (joint_xyz[0]+np.array([0,0,1])), plane=[0,1,1])
         joint_angles[16] = 90-angle_between(joint_xyz[13], joint_xyz[0], (joint_xyz[0]+np.array([1,0,0])), plane=[1,1,0])
     else:
         joint_angles[15] = 0
