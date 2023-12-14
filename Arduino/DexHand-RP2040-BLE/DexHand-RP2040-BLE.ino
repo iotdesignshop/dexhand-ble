@@ -266,8 +266,9 @@ void shaka()
     fingers[finger].setMaxPosition();
     fingers[finger].update();
   }
-  thumb.setPitch(30);
-  thumb.setYaw(15);
+  thumb.setPitch(0);
+  thumb.setYaw(0);
+  thumb.setRoll(15);
   thumb.update();
 
   for (int cycle = 0; cycle < 5; ++cycle) {
@@ -285,6 +286,91 @@ void shaka()
 
   setDefaultPose();
 
+}
+
+void thumbRangeTest()
+{
+  // Cycle through the two thumb servos testing the range
+  for (int right = managedServos[SERVO_THUMB_RIGHT].getMinPosition(); right <= managedServos[SERVO_THUMB_RIGHT].getMaxPosition(); right+=5)
+  {
+    managedServos[SERVO_THUMB_RIGHT].setServoPosition(right);
+    
+    for (int left = managedServos[SERVO_THUMB_LEFT].getMinPosition(); left <= managedServos[SERVO_THUMB_LEFT].getMaxPosition(); left+=5)
+    {
+      managedServos[SERVO_THUMB_LEFT].setServoPosition(left);
+      delay(100);
+    }
+  }
+  setDefaultPose();
+}
+
+void defaultFingers()
+{
+  for (int finger = FINGER_INDEX; finger <= FINGER_PINKY; ++finger)
+  {
+    fingers[finger].setExtension(100);
+    fingers[finger].update();
+  }
+  thumb.setExtension(100);
+  thumb.update();
+}
+void fingerTest()
+{
+
+  defaultFingers();
+  delay(1000);
+
+  // Pinky
+  fingers[FINGER_PINKY].setExtension(25);
+  fingers[FINGER_PINKY].update();
+  thumb.setPitch(60);
+  thumb.setYaw(0);
+  thumb.setFlexion(45);
+  thumb.setRoll(0);
+  thumb.update();
+  delay(1000);
+
+  defaultFingers();
+  delay(1000);
+
+  // Ring
+  fingers[FINGER_RING].setExtension(30);
+  fingers[FINGER_RING].update();
+  thumb.setPitch(60);
+  thumb.setYaw(0);
+  thumb.setFlexion(30);
+  thumb.setRoll(0);
+  thumb.update();
+  delay(1000);
+
+  defaultFingers();
+  delay(1000);
+
+  // Middle
+  fingers[FINGER_MIDDLE].setExtension(35);
+  fingers[FINGER_MIDDLE].update();
+  thumb.setPitch(50);
+  thumb.setYaw(0);
+  thumb.setFlexion(40);
+  thumb.setRoll(0);
+  thumb.update();
+  delay(1000);
+
+  defaultFingers();
+  delay(1000);
+
+  // Index
+  fingers[FINGER_INDEX].setExtension(35);
+  fingers[FINGER_INDEX].update();
+  thumb.setPitch(40);
+  thumb.setYaw(0);
+  thumb.setFlexion(45);
+  thumb.setRoll(0);
+  thumb.update();
+  delay(1000);
+
+  defaultFingers();
+  delay(1000);
 }
 
 
@@ -486,6 +572,20 @@ void processCommand(String cmd) {
       Serial.print("Setting thumb yaw to ");
       Serial.println(position);
     }
+    if (servoIndex == "flexion") {
+      thumb.setFlexion(position);
+      thumb.update();
+
+      Serial.print("Setting thumb flexion to ");
+      Serial.println(position);
+    }
+    if (servoIndex == "roll") {
+      thumb.setRoll(position);
+      thumb.update();
+
+      Serial.print("Setting thumb roll to ");
+      Serial.println(position);
+    }
   }
   if (cmdType == "one") {
     setOnePose();
@@ -510,6 +610,12 @@ void processCommand(String cmd) {
   }
   if (cmdType == "shaka") {
     shaka();
+  }
+  if (cmdType == "thumbtest") {
+    thumbRangeTest();
+  }
+  if (cmdType == "fingertest") {
+    fingerTest();
   }
   if (cmdType == "hb") {
     connectionTimeout.resetTimerValue();
@@ -610,6 +716,8 @@ void loop() {
   if (digitalRead(DEMO_BUTTON) == LOW) {
     Serial.println("Demo button pressed");
     wave();
+    delay(500);
+    fingerTest();
     delay(500);
     count();
     delay(500);
