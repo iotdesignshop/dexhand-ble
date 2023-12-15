@@ -1,6 +1,6 @@
 # DexHand-BLE - Demo of BLE Interface to DexHand on Arduino RP2040 Connect Board
+# Using MediaPipe Hand Tracking to control the DexHand
 
-# Released under the MIT License (MIT). See LICENSE file for details.
 # Trent Shumay - trent@iotdesignshop.com
 
 import asyncio
