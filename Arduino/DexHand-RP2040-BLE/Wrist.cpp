@@ -11,10 +11,10 @@ Wrist::Wrist(ManagedServo& leftPitchServo, ManagedServo& rightPitchServo)
 : mLeftPitchServo(leftPitchServo), mRightPitchServo(rightPitchServo) {
     // Default ranges to something sane, but they can be overriden by a tuning
     // routine or by the user if desired.
-    mPitchRange[0] = -20;
-    mPitchRange[1] = 20;
-    mYawRange[0] = -20;
-    mYawRange[1] = 20;
+    mPitchRange[0] = -40;
+    mPitchRange[1] = 40;
+    mYawRange[0] = -40;
+    mYawRange[1] = 40;
     
     // Targets to nominal
     mPitchTarget = 0;

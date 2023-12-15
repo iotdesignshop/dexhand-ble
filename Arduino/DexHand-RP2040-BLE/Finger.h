@@ -26,7 +26,7 @@ class ManagedServo;
 
 class Finger {
     public:
-        Finger(ManagedServo& leftPitchServo, ManagedServo& rightPitchServo, ManagedServo& flexionServo);
+        Finger(String name, ManagedServo& leftPitchServo, ManagedServo& rightPitchServo, ManagedServo& flexionServo);
         virtual ~Finger();
 
         // Loop
@@ -41,6 +41,8 @@ class Finger {
         void setMinPosition();
         void setExtension(int16_t percent);     // Sets overall finger extension from 0 (closed) to 100 (open)
         
+        inline String& getName() { return mName; }
+
         inline int16_t getPitch() const { return mPitchTarget;}
         inline int16_t getYaw() const { return mYawTarget;}
         inline int16_t getFlexion() const { return mFlexionTarget;}
@@ -64,6 +66,8 @@ class Finger {
 
 
     private:
+        String mName;
+        
         ManagedServo& mLeftPitchServo;
         ManagedServo& mRightPitchServo;
         ManagedServo& mFlexionServo;

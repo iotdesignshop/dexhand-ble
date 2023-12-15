@@ -7,8 +7,8 @@
 
 
 
-Finger::Finger(ManagedServo& leftPitchServo, ManagedServo& rightPitchServo, ManagedServo& flexionServo) 
-: mLeftPitchServo(leftPitchServo), mRightPitchServo(rightPitchServo), mFlexionServo(flexionServo) {
+Finger::Finger(String name, ManagedServo& leftPitchServo, ManagedServo& rightPitchServo, ManagedServo& flexionServo) 
+: mName(name), mLeftPitchServo(leftPitchServo), mRightPitchServo(rightPitchServo), mFlexionServo(flexionServo) {
     // Default ranges to something sane, but they can be overriden by a tuning
     // routine or by the user if desired.
     mPitchRange[0] = 0;

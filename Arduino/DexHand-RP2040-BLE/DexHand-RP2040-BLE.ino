@@ -8,7 +8,6 @@
 #include "WiFiNINA.h"
 
 
-
 // ----- Servo Setup -----
 #define NUM_SERVOS       18
 
@@ -72,10 +71,10 @@ typedef enum fingerIdx {
 } FINGER_IDX;
 
 Finger fingers[NUM_FINGERS] = {
-  Finger(managedServos[SERVO_INDEX_LOWER], managedServos[SERVO_INDEX_UPPER], managedServos[SERVO_INDEX_TIP]),
-  Finger(managedServos[SERVO_MIDDLE_LOWER], managedServos[SERVO_MIDDLE_UPPER], managedServos[SERVO_MIDDLE_TIP]),
-  Finger(managedServos[SERVO_RING_LOWER], managedServos[SERVO_RING_UPPER], managedServos[SERVO_RING_TIP]),
-  Finger(managedServos[SERVO_PINKY_LOWER], managedServos[SERVO_PINKY_UPPER], managedServos[SERVO_PINKY_TIP])
+  Finger("index", managedServos[SERVO_INDEX_LOWER], managedServos[SERVO_INDEX_UPPER], managedServos[SERVO_INDEX_TIP]),
+  Finger("middle", managedServos[SERVO_MIDDLE_LOWER], managedServos[SERVO_MIDDLE_UPPER], managedServos[SERVO_MIDDLE_TIP]),
+  Finger("ring", managedServos[SERVO_RING_LOWER], managedServos[SERVO_RING_UPPER], managedServos[SERVO_RING_TIP]),
+  Finger("pinky", managedServos[SERVO_PINKY_LOWER], managedServos[SERVO_PINKY_UPPER], managedServos[SERVO_PINKY_TIP])
 };
 
 Thumb thumb(managedServos[SERVO_THUMB_LEFT], managedServos[SERVO_THUMB_RIGHT], managedServos[SERVO_THUMB_TIP], managedServos[SERVO_THUMB_ROTATE]);
@@ -373,6 +372,87 @@ void fingerTest()
   delay(1000);
 }
 
+// Dump out the current DOF angles
+String printDOFS()
+{
+  // This command outputs a JSON array of all of the angle ranges for the DOFS in the hand
+    String result = "DOFS:[ ";
+
+    // Would be nicer if this could be more automated based on the data structures, but for
+    // now we just output the values in the right order
+
+    for (int finger = 0; finger < NUM_FINGERS; ++finger)
+    {
+      // Fingers
+      result += "{ \"name\": \"";
+      result += fingers[finger].getName();
+      result += "_pitch\", \"range\": [";
+      result += fingers[finger].getPitchMin();
+      result += ", ";
+      result += fingers[finger].getPitchMax();
+      result += "] }, ";
+
+      result += "{ \"name\": \"";
+      result += fingers[finger].getName();
+      result += "_yaw\", \"range\": [";
+      result += fingers[finger].getYawMin();
+      result += ", ";
+      result += fingers[finger].getYawMax();
+      result += "] }, ";
+
+      result += "{ \"name\": \"";
+      result += fingers[finger].getName();
+      result += "_flexion\", \"range\": [";
+      result += fingers[finger].getFlexionMin();
+      result += ", ";
+      result += fingers[finger].getFlexionMax();
+      result += "] }, ";
+    }
+    
+    // Thumb
+    result += "{ \"name\": \"thumb_pitch\", \"range\": [";
+    result += thumb.getPitchMin();
+    result += ", ";
+    result += thumb.getPitchMax();
+    result += "] }, ";
+
+    result += "{ \"name\": \"thumb_yaw\", \"range\": [";
+    result += thumb.getYawMin();
+    result += ", ";
+    result += thumb.getYawMax();
+    result += "] }, ";
+
+    result += "{ \"name\": \"thumb_flexion\", \"range\": [";
+    result += thumb.getFlexionMin();
+    result += ", ";
+    result += thumb.getFlexionMax();
+    result += "] }, ";
+
+    // Roll is currently not used - this is here for when we want to enable it
+    //result += "{ \"name\": \"thumb_roll\", \"range\": [";
+    //result += thumb.getRollMin();
+    //result += ", ";
+    //result += thumb.getRollMax();
+    //result += "] }, ";
+
+    // Wrist
+    result += "{ \"name\": \"wrist_pitch\", \"range\": [";
+    result += wrist.getPitchMin();
+    result += ", ";
+    result += wrist.getPitchMax();
+    result += "] }, ";
+
+    result += "{ \"name\": \"wrist_yaw\", \"range\": [";
+    result += wrist.getYawMin();
+    result += ", ";
+    result += wrist.getYawMax();
+    result += "] } ";
+    
+    result += "]";
+
+    return result;
+}
+
 
 // --- Main Setup -----------------------
 
@@ -619,7 +699,7 @@ void processCommand(String cmd) {
   }
   if (cmdType == "hb") {
     connectionTimeout.resetTimerValue();
-    Serial.println("Heartbeat received");
+    Serial.println("HB: Heartbeat received");
   }
   if (cmdType == "gesture") {
     if (servoIndex == "count") {
@@ -635,6 +715,9 @@ void processCommand(String cmd) {
       setDefaultPose();
       delay(500);
     }
+  }
+  if (cmdType == "dofs") {
+    Serial.println(printDOFS().c_str());
   }
 }
 
@@ -737,7 +820,7 @@ void rxHandler(BLEDevice central, BLECharacteristic characteristic) {
   if (newlinePos != -1)
   {
     receivedData = receivedData.substring(0, newlinePos);
-    processCommand(receivedData);
+      processCommand(receivedData);
   }  
 }
 
@@ -747,10 +830,30 @@ void dofHandler(BLEDevice central, BLECharacteristic characteristic) {
   // The angles are packed into 8-bit values centered at 128, so we need to
   // unpack them and convert them back into decimal angles for the servos
   const uint8_t* data = characteristic.value();
+
+  // Simple data integrity checks
+  if (characteristic.valueLength() != DOF_COUNT+1) {
+    Serial.print("Invalid DOF length: ");
+    Serial.println(characteristic.valueLength());
+    return;
+  }
+  
+  // Last byte is a checksum - check against other bytes
+  uint8_t checksum = 0;
+  for (int i = 0; i < DOF_COUNT; i++) {
+    checksum += data[i];
+  }
+  if (checksum != data[DOF_COUNT]) {
+    Serial.print("Invalid DOF checksum: ");
+    Serial.println(checksum);
+    return;
+  }
+
+  Serial.println(characteristic.valueLength());
   int16_t unpackedAngles[DOF_COUNT];
 
   for (int i = 0; i < DOF_COUNT; i++) {
-    float angle = (data[i] - 128)*360.0/256.0;
+    float angle = (data[i] - 127)*360.0/256.0;
     unpackedAngles[i] = static_cast<int16_t>(angle);
   }
 
@@ -765,7 +868,6 @@ void dofHandler(BLEDevice central, BLECharacteristic characteristic) {
   Serial.println();
   #endif
 
-  // Now, these angles can be sent to our controllers to adjust the hand poses
 
   // Fingers first
   for (int i = 0; i < NUM_FINGERS; i++) {
