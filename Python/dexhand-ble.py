@@ -373,7 +373,12 @@ async def ble_communication(tx_queue):
                 scaled = np.interp(clipped, (-180, 180), (0, 255))
                 encoded = scaled.astype(np.uint8)
 
+                
                 data = bytearray(encoded)
+                
+                # Add a checksum to the data
+                checksum = sum(data) % 256
+                data.append(checksum)
                 
                 # Send the joint angles to the hand without response as it's faster
                 await client.write_gatt_char(dof_char, data)
