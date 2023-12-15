@@ -243,12 +243,12 @@ void wave() {
     for (int yaw = wrist.getYawMin(); yaw <= wrist.getYawMax(); yaw ++) {
       wrist.setYaw(yaw);
       wrist.update();
-      delay(5);
+      delay(3);
     }
     for (int yaw = wrist.getYawMax(); yaw >= wrist.getYawMin(); yaw --) {
       wrist.setYaw(yaw);
       wrist.update();
-      delay(5);
+      delay(3);
     }
   }
   setDefaultPose();
@@ -257,7 +257,7 @@ void wave() {
 // Perform a shaka
 void shaka()
 {
-  const int SHAKA_RANGE = 10;
+  const int SHAKA_RANGE = 20;
   setDefaultPose();
 
   for (int finger = FINGER_INDEX; finger < FINGER_PINKY; ++finger)
@@ -274,12 +274,12 @@ void shaka()
     for (int yaw = -SHAKA_RANGE; yaw <= SHAKA_RANGE; yaw ++) {
       wrist.setYaw(yaw);
       wrist.update();
-      delay(10);
+      delay(5);
     }
     for (int yaw = SHAKA_RANGE; yaw >= -SHAKA_RANGE; yaw --) {
       wrist.setYaw(yaw);
       wrist.update();
-      delay(10);
+      delay(5);
     }
   }
 
